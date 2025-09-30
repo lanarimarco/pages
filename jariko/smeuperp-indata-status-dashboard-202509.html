@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smeuperp in Data - Settembre 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(36, 39, 46, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 {
+            color: #f7fafc;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header .subtitle {
+            color: #a0aec0;
+            font-size: 1.1em;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #7f53ac 0%, #647dee 100%);
+            color: #f7fafc;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: #353a46;
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2d3748;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            background: #232526;
+        }
+        
+        .card h2 {
+            color: #f7fafc;
+            font-size: 1.3em;
+            flex: 1;
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #a0aec0;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #232526;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+        }
+        
+        .status-ok {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .status-warning {
+            background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+            color: #232526;
+        }
+        
+        .status-error {
+            background: linear-gradient(135deg, #f953c6 0%, #b91d73 100%);
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            position: relative;
+            height: 250px;
+        }
+        
+        .donut-chart {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+        
+        .issue-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .issue-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #232526;
+            border-left: 4px solid;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .issue-item:hover {
+            background: #2d3748;
+            transform: translateX(5px);
+        }
+        
+        .issue-critical {
+            border-color: #f56565;
+        }
+        
+        .issue-major {
+            border-color: #ed8936;
+        }
+        
+        .issue-minor {
+            border-color: #4299e1;
+        }
+        
+        .roadmap {
+            background: #353a46;
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .roadmap h2 {
+            color: #f7fafc;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin: 25px 0;
+            padding: 20px;
+            background: #353a46;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .timeline-item:hover {
+            background: #2d3748;
+            transform: translateX(5px);
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 25px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #353a46;
+            border: 3px solid #647dee;
+        }
+        
+        .timeline-item h3 {
+            color: #f7fafc;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+        
+        .timeline-item p {
+            color: #a0aec0;
+            line-height: 1.6;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .priority-high {
+            background: #b91d73;
+            color: #f7fafc;
+        }
+        
+        .priority-medium {
+            background: #647dee;
+            color: #f7fafc;
+        }
+        
+        .priority-low {
+            background: #232526;
+            color: #a0aec0;
+            border: 1px solid #647dee;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #353a46;
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #f7fafc;
+        }
+        
+        .stat-label {
+            color: #a0aec0;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                🚀 Smeuperp in Data
+                <span class="status-badge">Stato al 22/09/2025</span>
+            </h1>
+            <p class="subtitle">Migrazione Smeuperp in Data - Performance e Funzionalità</p>
+        </div>
+        
+        <!-- Metriche Principali -->
+        <div class="grid">
+            <!-- Stato Generale FUN -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon status-warning">📊</div>
+                    <h2>Stato FUN C5</h2>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill status-ok" style="width: 12%">12%</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #48bb78">3</div>
+                        <div class="stat-label">Funzionanti</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ed8936">12</div>
+                        <div class="stat-label">Payload Diversi</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #f56565">11</div>
+                        <div class="stat-label">Errori Runtime</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon status-ok">⚡</div>
+                    <h2>Performance</h2>
+                </div>
+                <div class="metric-value" style="color: #48bb78">-52.7%</div>
+                <div class="metric-label">Miglioramento medio con cache</div>
+                <div class="stats-grid" style="margin-top: 15px">
+                    <div class="stat-item">
+                        <div class="stat-value">57%</div>
+                        <div class="stat-label">Performance Ottimali</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">36%</div>
+                        <div class="stat-label">Da Migliorare</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">7%</div>
+                        <div class="stat-label">Critiche</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Telemetria -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon status-ok">📡</div>
+                    <h2>Telemetria RPG</h2>
+                </div>
+                <div class="metric-value" style="color: #48bb78">100%</div>
+                <div class="metric-label">Implementazione completata</div>
+                <ul class="issue-list">
+                    <li class="issue-item issue-minor">✅ OpenTelemetry integrato</li>
+                    <li class="issue-item issue-minor">✅ Monitoraggio performance attivo</li>
+                    <li class="issue-item issue-minor">✅ Filtri configurabili implementati</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Problematiche Sistemiche -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon status-error">⚠️</div>
+                    <h2>Criticità Architetturali</h2>
+                </div>
+                <ul class="issue-list">
+                    <li class="issue-item issue-critical">
+                        <strong>🔌 Connection Provider Assente</strong>
+                        <br>Rischio saturazione connessioni DB
+                    </li>
+                    <li class="issue-item issue-critical">
+                        <strong>💾 Gestione File Temporanei</strong>
+                        <br>Problemi accesso multi-thread non risolti
+                    </li>
+                    <li class="issue-item issue-major">
+                        <strong>🧪 Copertura Test Insufficiente</strong>
+                        <br>Test unitari inadeguati per /COPY
+                    </li>
+                    <li class="issue-item issue-major">
+                        <strong>📊 Data Area Non Gestite</strong>
+                        <br>Solo simulazione minimale implementata
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon status-warning">🔧</div>
+                    <h2>Componenti Mancanti</h2>
+                </div>
+                <ul class="issue-list">
+                    <li class="issue-item issue-critical">
+                        <strong>B£TNU0</strong>
+                        <br>Programma non implementato (impatta 4 FUN)
+                    </li>
+                    <li class="issue-item issue-major">
+                        <strong>Schema DB Disallineato</strong>
+                        <br>Colonne mancanti, file non trovati
+                    </li>
+                    <li class="issue-item issue-major">
+                        <strong>£EXCMD Reference</strong>
+                        <br>Variabile non risolta (regressione £INZSR)
+                    </li>
+                    <li class="issue-item issue-minor">
+                        <strong>Formattazione Output</strong>
+                        <br>Differenze nella formattazione numerica
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon status-warning">📈</div>
+                    <h2>Ottimizzazioni Implementate</h2>
+                </div>
+                <ul class="issue-list">
+                    <li class="issue-item issue-minor">
+                        <strong>✅ Cache CompilationUnit</strong>
+                        <br>Riduzione fino all'80% dei tempi
+                    </li>
+                    <li class="issue-item issue-minor">
+                        <strong>✅ Cache JDBC Driver</strong>
+                        <br>Azzeramento tempi I/O per test
+                    </li>
+                    <li class="issue-item issue-major">
+                        <strong>⚠️ Cache Non Production-Ready</strong>
+                        <br>Implementazione rudimentale, necessita architettura enterprise-grade
+                    </li>
+                    <li class="issue-item issue-critical">
+                        <strong>🎯 Baseline Performance Raggiunta</strong>
+                        <br>Limite architetturale identificato
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Roadmap -->
+        <div class="roadmap">
+            <h2>🗺️ Roadmap Strategica</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h3>Fase 1: Testing & Qualità <span class="priority-badge priority-high">Priorità Alta</span></h3>
+                    <p>Sistema automatico di estrazione parametri IN/OUT dai log Jariko. Generazione automatica test unitari per /COPY. Integrazione con utility test AS400.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>Fase 2: Stabilizzazione Immediata <span class="priority-badge priority-high">Priorità Alta</span></h3>
+                    <p>Implementazione Connection Provider centralizzato per evitare saturazione DB. Fix delle regressioni critiche e implementazione programmi mancanti (B£TNU0).</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>Fase 3: CompilationUnit Cache Production-Ready <span class="priority-badge priority-medium">Priorità Media</span></h3>
+                    <p>Reimplementazione sistema di cache con architettura enterprise-grade. Gestione invalidazione, TTL, e sincronizzazione multi-thread.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>Fase 4: Gestione Data Area <span class="priority-badge priority-low">Priorità Bassa</span></h3>
+                    <p>Completamento implementazione Redis per data area. Ripristino del lavoro già svolto nel PR #733.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>Fase 5: Just-In-Time Compilation <span class="priority-badge priority-high">Priorità Alta</span></h3>
+                    <p>Implementazione JIT per superare i limiti architetturali attuali. Focus sulle FUN con differenze di 2-3 ordini di grandezza nelle performance.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Box -->
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">💡</div>
+                <h2>Raccomandazioni Chiave</h2>
+            </div>
+            <div style="padding: 10px 0;">
+                <p style="line-height: 1.8; color: #dddad6;">
+                    <strong>1. Team Dedicato:</strong> Costituire un team focalizzato con Delivery Manager e sviluppatori specializzati per garantire continuità operativa.<br><br>
+                    <strong>2. Supporto AI per Specifiche:</strong> Utilizzare LLM per generare bozze di /COPY drogate e ridurre i tempi di attesa documentazione.<br><br>
+                    <strong>3. Stabilizzazione Sistema:</strong> Prioritizzare fix delle criticità architetturali prima di interventi di ottimizzazione avanzata.<br><br>
+                    <strong>4. Approccio Incrementale:</strong> Procedere con fix incrementali partendo dalle criticità che impattano il maggior numero di FUN.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Animazione progress bars
+        window.addEventListener('load', () => {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        });
+        
+        // Animazione numeri
+        function animateValue(element, start, end, duration) {
+            const range = end - start;
+            const minTimer = 50;
+            let stepTime = Math.abs(Math.floor(duration / range));
+            stepTime = Math.max(stepTime, minTimer);
+            const startTime = new Date().getTime();
+            const endTime = startTime + duration;
+            let timer;
+            
+            function run() {
+                const now = new Date().getTime();
+                const remaining = Math.max((endTime - now) / duration, 0);
+                const value = Math.round(end - (remaining * range));
+                element.textContent = value + (element.dataset.suffix || '');
+                if (value == end) {
+                    clearInterval(timer);
+                }
+            }
+            
+            timer = setInterval(run, stepTime);
+            run();
+        }
+        
+        // Anima i valori numerici
+        document.querySelectorAll('.metric-value').forEach(el => {
+            const text = el.textContent;
+            if (text.includes('%')) {
+                const value = parseFloat(text);
+                el.dataset.suffix = '%';
+                animateValue(el, 0, Math.abs(value), 1000);
+                if (value < 0) {
+                    setTimeout(() => {
+                        el.textContent = text;
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
