@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Futuro della Programmazione | La Visione di Andrew Ng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm & Assuring -->
+    <!-- Application Structure Plan: The application is structured as a single-page, scrollytelling experience to guide the user through Andrew Ng's argument in a logical narrative. It starts with a hook (the main question), establishes Ng's credibility, presents his core thesis, allows interactive exploration of his four main arguments via clickable cards, visualizes the resulting skill shift with a CSS-based diagram, and concludes with a summary. This thematic, interactive flow is more engaging than a static report and helps users digest the conceptual information step-by-step. -->
+    <!-- Visualization & Content Choices: 1. Ng's Bio -> Goal: Inform -> Presentation: Profile card -> Interaction: Static -> Justification: Quickly establishes authority without user effort -> Method: HTML/Tailwind. 2. Four Key Arguments -> Goal: Organize/Inform -> Presentation: Interactive grid of cards -> Interaction: Click to reveal details -> Justification: Breaks down the core thesis into digestible, user-explorable chunks, preventing a wall of text -> Method: HTML/Tailwind/JS. 3. Programmer Skill Shift -> Goal: Compare/Change -> Presentation: Two-column diagram -> Interaction: Static visual -> Justification: Visually represents the abstract concept of role evolution in a clear "before/after" format -> Method: HTML/Tailwind. CONFIRMING NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F4F8;
+            color: #4D5D7E;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #4D5D7E;
+            border-bottom-color: #4D5D7E;
+        }
+        .card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .details-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out;
+        }
+        .details-content.open {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="header" class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="text-xl font-bold text-[#4D5D7E]">La Visione di Andrew Ng</div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#introduzione" class="nav-link text-[#8D9DB6] font-medium pb-1">Introduzione</a>
+                <a href="#tesi" class="nav-link text-[#8D9DB6] font-medium pb-1">La Tesi</a>
+                <a href="#pilastri" class="nav-link text-[#8D9DB6] font-medium pb-1">I Pilastri</a>
+                <a href="#evoluzione" class="nav-link text-[#8D9DB6] font-medium pb-1">Evoluzione</a>
+                <a href="#conclusione" class="nav-link text-[#8D9DB6] font-medium pb-1">Conclusione</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="introduzione" class="py-20 md:py-28">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-[#4D5D7E] leading-tight">L'IA sostituirà i programmatori?</h1>
+                <p class="mt-4 text-lg md:text-xl text-[#8D9DB6] max-w-3xl mx-auto">Una delle domande più dibattute nel mondo della tecnologia. Esploriamo la risposta di uno dei massimi esperti di intelligenza artificiale.</p>
+                    <div class="mt-6">
+                        <a href="andrewngvision.mp3" class="text-blue-600 underline font-medium" target="_blank">🎧 Ascolta il podcast di Andrew Ng</a>
+                    </div>
+                <div class="mt-12 bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto text-left flex flex-col md:flex-row items-center gap-8">
+                     <div class="w-32 h-32 bg-[#D9E2EC] rounded-full flex items-center justify-center text-6xl font-bold text-[#4D5D7E] flex-shrink-0">AN</div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-[#4D5D7E]">Andrew Ng: Una Voce Autorevole</h2>
+                        <p class="mt-2 text-[#8D9DB6]">Prima di analizzare la sua visione, è fondamentale capire perché le sue parole hanno un peso così significativo. Andrew Ng non è solo un accademico, ma un pioniere che ha plasmato l'IA moderna.</p>
+                        <ul class="mt-4 space-y-2 text-sm text-[#4D5D7E]">
+                            <li class="flex items-start"><span class="text-[#8D9DB6] mr-2 text-lg">▪</span><div><strong class="font-semibold">Co-fondatore di Google Brain</strong>, progetto che ha rivoluzionato il deep learning.</div></li>
+                            <li class="flex items-start"><span class="text-[#8D9DB6] mr-2 text-lg">▪</span><div><strong class="font-semibold">Co-fondatore di Coursera</strong>, democratizzando l'accesso all'istruzione sull'IA.</div></li>
+                             <li class="flex items-start"><span class="text-[#8D9DB6] mr-2 text-lg">▪</span><div>Professore associato alla <strong class="font-semibold">Stanford University</strong> e fondatore di DeepLearning.AI.</div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tesi" class="py-20 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                 <h2 class="text-3xl md:text-4xl font-bold text-[#4D5D7E]">La Tesi Centrale: Evoluzione, non Sostituzione</h2>
+                 <p class="mt-4 text-lg text-[#8D9DB6] max-w-3xl mx-auto">La visione di Andrew Ng è chiara e pragmatica. L'intelligenza artificiale non è un nemico che rimpiazzerà gli sviluppatori, ma un potente alleato che ne trasformerà il ruolo, aumentandone le capacità e la produttività.</p>
+                <div class="mt-12 p-8 bg-[#F0F4F8] rounded-2xl max-w-3xl mx-auto">
+                    <p class="text-2xl font-medium text-[#4D5D7E] leading-relaxed">"L'IA diventerà un <strong class="font-bold">partner indispensabile</strong> per ogni programmatore, automatizzando il superfluo per liberare la <strong class="font-bold">creatività umana</strong> e la risoluzione di problemi complessi."</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pilastri" class="py-20">
+            <div class="container mx-auto px-6">
+                 <h2 class="text-3xl md:text-4xl font-bold text-center text-[#4D5D7E]">I 4 Pilastri dell'Argomentazione</h2>
+                 <p class="mt-4 text-lg text-center text-[#8D9DB6] max-w-3xl mx-auto">La tesi di Ng si fonda su quattro osservazioni chiave che descrivono come l'IA sta già rimodellando il mondo dello sviluppo software. Clicca su ogni punto per approfondire.</p>
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div class="card bg-white rounded-2xl shadow-lg p-6 cursor-pointer" data-target="details-1">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-[#D9E2EC] rounded-full flex items-center justify-center text-2xl font-bold text-[#4D5D7E] mr-4">1</div>
+                            <h3 class="text-xl font-bold text-[#4D5D7E]">Aumento della Produttività</h3>
+                        </div>
+                        <div id="details-1" class="details-content mt-4 text-[#8D9DB6] border-l-2 border-[#D9E2EC] pl-4">
+                            <p>Strumenti come GitHub Copilot possono scrivere codice di routine, generare test e suggerire soluzioni in pochi secondi. Questo non elimina il programmatore, ma lo rende esponenzialmente più veloce, permettendogli di concentrarsi sulla logica di business e sull'architettura, anziché sulla sintassi ripetitiva.</p>
+                        </div>
+                    </div>
+
+                    <div class="card bg-white rounded-2xl shadow-lg p-6 cursor-pointer" data-target="details-2">
+                         <div class="flex items-center">
+                            <div class="w-12 h-12 bg-[#D9E2EC] rounded-full flex items-center justify-center text-2xl font-bold text-[#4D5D7E] mr-4">2</div>
+                            <h3 class="text-xl font-bold text-[#4D5D7E]">Evoluzione delle Competenze</h3>
+                        </div>
+                        <div id="details-2" class="details-content mt-4 text-[#8D9DB6] border-l-2 border-[#D9E2EC] pl-4">
+                            <p>Il focus si sposta dalla "scrittura di codice" alla "progettazione di sistemi". Le competenze più richieste diventeranno la capacità di scomporre problemi complessi, la supervisione del codice generato dall'IA, l'integrazione di sistemi e la garanzia di qualità e sicurezza, compiti che richiedono un giudizio umano esperto.</p>
+                        </div>
+                    </div>
+
+                    <div class="card bg-white rounded-2xl shadow-lg p-6 cursor-pointer" data-target="details-3">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-[#D9E2EC] rounded-full flex items-center justify-center text-2xl font-bold text-[#4D5D7E] mr-4">3</div>
+                            <h3 class="text-xl font-bold text-[#4D5D7E]">L'Analogia della Calcolatrice</h3>
+                        </div>
+                         <div id="details-3" class="details-content mt-4 text-[#8D9DB6] border-l-2 border-[#D9E2EC] pl-4">
+                             <p>Ng paragona l'IA alla calcolatrice per i matematici. La calcolatrice non ha eliminato i matematici, ma li ha liberati dai calcoli manuali, permettendo loro di affrontare problemi più astratti e complessi. L'IA gestirà la "sintassi" di basso livello, lasciando agli umani la "semantica" e la strategia di alto livello.</p>
+                        </div>
+                    </div>
+
+                    <div class="card bg-white rounded-2xl shadow-lg p-6 cursor-pointer" data-target="details-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-[#D9E2EC] rounded-full flex items-center justify-center text-2xl font-bold text-[#4D5D7E] mr-4">4</div>
+                            <h3 class="text-xl font-bold text-[#4D5D7E]">Limiti di Creatività e Contesto</h3>
+                        </div>
+                         <div id="details-4" class="details-content mt-4 text-[#8D9DB6] border-l-2 border-[#D9E2EC] pl-4">
+                             <p>L'IA eccelle nell'eseguire compiti basati su pattern esistenti. Manca, tuttavia, della capacità di comprendere le esigenze sfumate di un cliente, di inventare soluzioni radicalmente nuove o di prendere decisioni strategiche che richiedono una profonda comprensione del business e del mondo reale.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="evoluzione" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-[#4D5D7E]">Il Nuovo Programmatore: Un'Evoluzione del Ruolo</h2>
+                <p class="mt-4 text-lg text-center text-[#8D9DB6] max-w-3xl mx-auto">Il ruolo del programmatore non scompare, ma si eleva. L'attenzione si sposta dalle attività di pura esecuzione a quelle di strategia, progettazione e supervisione, dove il valore umano è insostituibile.</p>
+
+                <div class="mt-12 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div class="border-2 border-[#D9E2EC] rounded-2xl p-6">
+                        <h3 class="text-xl font-bold text-[#8D9DB6] text-center">Focus Tradizionale</h3>
+                        <ul class="mt-6 space-y-4">
+                            <li class="p-4 bg-[#F0F4F8] rounded-lg text-center text-[#4D5D7E] font-medium">Scrittura manuale di codice</li>
+                            <li class="p-4 bg-[#F0F4F8] rounded-lg text-center text-[#4D5D7E] font-medium">Debugging di basso livello</li>
+                            <li class="p-4 bg-[#F0F4F8] rounded-lg text-center text-[#4D5D7E] font-medium">Implementazione di algoritmi noti</li>
+                            <li class="p-4 bg-[#F0F4F8] rounded-lg text-center text-[#4D5D7E] font-medium">Ottimizzazione della sintassi</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-[#4D5D7E] text-white rounded-2xl p-6 shadow-2xl">
+                        <h3 class="text-xl font-bold text-white text-center">Focus Futuro (Potenziato dall'IA)</h3>
+                        <ul class="mt-6 space-y-4">
+                            <li class="p-4 bg-[#8D9DB6] rounded-lg text-center font-semibold">Progettazione di architetture di sistema</li>
+                            <li class="p-4 bg-[#8D9DB6] rounded-lg text-center font-semibold">Supervisione e validazione del codice IA</li>
+                            <li class="p-4 bg-[#8D9DB6] rounded-lg text-center font-semibold">Risoluzione creativa di problemi complessi</li>
+                            <li class="p-4 bg-[#8D9DB6] rounded-lg text-center font-semibold">Integrazione e strategia di business</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusione" class="py-20">
+            <div class="container mx-auto px-6 text-center">
+                 <h2 class="text-3xl md:text-4xl font-bold text-[#4D5D7E]">Conclusione: Un Futuro di Collaborazione</h2>
+                 <p class="mt-4 text-lg text-[#8D9DB6] max-w-3xl mx-auto">La visione di Andrew Ng non è una previsione di obsolescenza, ma un invito all'adattamento. Il futuro appartiene ai programmatori che impareranno a collaborare con l'intelligenza artificiale, usandola come uno strumento per costruire software più potente, complesso e innovativo a una velocità senza precedenti.</p>
+                 <div class="mt-12 flex justify-center">
+                    <div class="bg-white rounded-full p-6 shadow-lg">
+                        <p class="text-4xl">👨‍💻 + 🤖 = 🚀</p>
+                    </div>
+                </div>
+                 <p class="mt-6 text-lg font-semibold text-[#4D5D7E]">La sfida non è sopravvivere all'IA, ma imparare a creare insieme ad essa.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white py-6">
+        <div class="container mx-auto px-6 text-center text-[#8D9DB6]">
+            <p>Applicazione interattiva basata sull'analisi del pensiero di Andrew Ng. Creato il 2 Ottobre 2025.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const targetId = card.getAttribute('data-target');
+                    const detailsContent = document.getElementById(targetId);
+                    
+                    if (detailsContent) {
+                        detailsContent.classList.toggle('open');
+                    }
+                });
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.4
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
