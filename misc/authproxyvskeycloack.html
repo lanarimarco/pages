@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -95,20 +94,6 @@
             padding: 1.5rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
             height: 100%;
-        }
-        
-        #gemini-result h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        #gemini-result p {
-            margin-bottom: 1rem;
-        }
-        #gemini-result ul {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -254,26 +239,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Gemini AI Advisor -->
-        <section id="gemini-advisor" class="mb-16 bg-white p-8 rounded-lg shadow-lg">
-            <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">Consulente AI per la Scelta ✨</h2>
-            <p class="text-center text-gray-600 mb-6">Descrivi i requisiti del tuo progetto e ottieni una raccomandazione su quale soluzione adottare.</p>
-            <div class="max-w-2xl mx-auto">
-                <textarea id="project-description" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" rows="5" placeholder="Esempio: Sto costruendo un'applicazione con un backend basato su microservizi e un'app mobile. Ho bisogno di un controllo granulare degli accessi alle API e di supportare il login con Google e Facebook."></textarea>
-                <button id="get-recommendation-btn" class="mt-4 w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition flex items-center justify-center">
-                    Ottieni una raccomandazione
-                </button>
-                <div id="loader" class="hidden mt-6 text-center">
-                    <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p class="mt-2 text-gray-600">Analisi in corso...</p>
-                </div>
-                <div id="gemini-result" class="mt-6 p-5 border border-gray-200 rounded-lg bg-gray-50/50 hidden prose max-w-none"></div>
-            </div>
-        </section>
         
         <!-- Tabella Riassuntiva -->
         <section>
@@ -319,89 +284,6 @@
         </section>
 
     </div>
-
-    <script>
-        const getRecommendationBtn = document.getElementById('get-recommendation-btn');
-        const projectDescription = document.getElementById('project-description');
-        const loader = document.getElementById('loader');
-        const geminiResult = document.getElementById('gemini-result');
-
-        getRecommendationBtn.addEventListener('click', async () => {
-            const description = projectDescription.value;
-            if (!description.trim()) {
-                geminiResult.innerHTML = `<p class="text-red-600">Per favore, inserisci una descrizione del tuo progetto.</p>`;
-                geminiResult.classList.remove('hidden');
-                return;
-            }
-
-            loader.classList.remove('hidden');
-            geminiResult.classList.add('hidden');
-            getRecommendationBtn.disabled = true;
-
-            const systemPrompt = `
-                Sei un architetto software e di sicurezza esperto. Il tuo compito è consigliare AuthProxy o Keycloak per il progetto di un utente in base alla sua descrizione. Devi basare la tua risposta esclusivamente sulle informazioni fornite di seguito.
-
-                **Contesto su AuthProxy:**
-                - È un proxy verso un IdP esterno.
-                - Semplifica l'integrazione SSO.
-                - Utilizza un protocollo OAuth 2.0 semplificato.
-                - Restituisce un token effimero, monouso, utilizzato solo per ottenere l'email dell'utente.
-                - L'applicazione si fida dell'email, ma il token non può essere utilizzato per altro.
-                - Ideale per semplici applicazioni web monolitiche.
-
-                **Contesto su Keycloak:**
-                - È una soluzione completa di Identity and Access Management (IAM) e un IdP.
-                - Supporta standard come OpenID Connect, OAuth 2.0 e SAML 2.0.
-                - Restituisce un token JWT (JSON Web Token) durevole con una scadenza definita.
-                - Il token viene utilizzato per l'autenticazione e l'autorizzazione continue per accedere a risorse protette (come le API).
-                - Ideale per architetture complesse, microservizi e API sicure.
-
-                Analizza le esigenze del progetto dell'utente (es. necessità di proteggere API, architettura a microservizi, controllo accessi granulare).
-                Quindi, raccomanda una delle due soluzioni e fornisci una spiegazione chiara e concisa in italiano per la tua scelta.
-                Formatta la risposta in Markdown, iniziando con un titolo di livello 3 (###) per la raccomandazione.
-            `;
-            
-            const userQuery = description;
-            const apiKey = ""; // Canvas will provide it
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-            };
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                const candidate = result.candidates?.[0];
-
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    const text = candidate.content.parts[0].text;
-                    geminiResult.innerHTML = marked.parse(text); // Using marked.js to parse Markdown
-                } else {
-                    geminiResult.innerHTML = `<p class="text-red-600">Non è stato possibile generare una risposta. Riprova.</p>`;
-                }
-            } catch (error) {
-                console.error('Error calling Gemini API:', error);
-                geminiResult.innerHTML = `<p class="text-red-600">Si è verificato un errore durante la richiesta. Controlla la console per i dettagli.</p>`;
-            } finally {
-                loader.classList.add('hidden');
-                geminiResult.classList.remove('hidden');
-                getRecommendationBtn.disabled = false;
-            }
-        });
-    </script>
 </body>
 </html>
 
