@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano di Migrazione RDS: Da VSS a GitHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+            border: 3px solid #e0e7ff;
+        }
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 50%;
+            width: 2px;
+            height: 100%;
+            background-color: #e0e7ff;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">Piano di Migrazione RDS</h1>
+            <p class="text-xl text-indigo-600 mt-2">Da VSS a GitHub con Maven</p>
+            <p class="max-w-3xl mx-auto mt-4 text-slate-600">
+                Questo documento delinea i passaggi, le tempistiche e le azioni necessarie per la transizione del progetto RDS al nuovo ambiente di sviluppo, in preparazione per il progetto Menarini ODP 3.0.
+            </p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Colonna principale -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Obiettivi -->
+                <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Obiettivi della Migrazione
+                    </h2>
+                    <ul class="list-disc list-inside space-y-2 text-slate-700">
+                        <li><strong>Modernizzare il workflow:</strong> Abbandonare VSS in favore di Git e GitHub per una gestione del codice più efficiente e collaborativa.</li>
+                        <li><strong>Semplificare il setup:</strong> "Mavenizzare" il progetto RDS per ridurre drasticamente la complessità del primo setup per gli sviluppatori.</li>
+                        <li><strong>Migliorare la Toolchain:</strong> Introdurre strumenti moderni come un server Tomcat embedded per test e un sistema di patching più robusto.</li>
+                        <li><strong>Allineamento Strategico:</strong> Preparare la codebase e il team per le sfide del nuovo progetto <strong>Menarini ODP 3.0</strong>.</li>
+                    </ul>
+                </section>
+
+                <!-- Ambiente di Sviluppo -->
+                <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        Ambiente di Sviluppo
+                    </h2>
+                    <div class="space-y-4">
+                        <p class="text-slate-700">La codebase è sincronizzata ogni notte da VSS al seguente repository GitHub. Questo repository diventerà la nostra unica fonte di verità.</p>
+                        <div>
+                            <p class="font-semibold text-slate-800">Repository Principale:</p>
+                            <a href="https://github.com/lanarimarco/rdsv6" target="_blank" class="text-indigo-600 hover:underline break-words">https://github.com/lanarimarco/rdsv6</a>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-800">Branch di Lavoro Principale (in corso):</p>
+                            <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded-md text-sm">feature/mavenizedrdsv6</code>
+                        </div>
+                        <div class="pt-4">
+                             <h3 class="text-lg font-semibold text-slate-800 mb-2">Branch Sperimentali</h3>
+                             <p class="text-slate-700 mb-3">Per consentire a tutti di prendere confidenza con il nuovo ambiente, sono state create delle branch personali. Usatele per i vostri esperimenti e per seguire i video tutorial.</p>
+                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded-md text-sm">feature/andrea</code>
+                                <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded-md text-sm">feature/bruno</code>
+                                <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded-md text-sm">feature/carina</code>
+                                <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded-md text-sm">feature/marco</code>
+                                <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded-md text-sm">feature/stefano</code>
+                             </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Formazione e Risorse -->
+                <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        Formazione e Risorse
+                    </h2>
+                    <p class="text-slate-700 mb-4">Per facilitare la transizione, verranno rilasciati tre video tutorial:</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><span class="bg-indigo-100 text-indigo-800 text-xs font-semibold mr-3 px-2.5 py-1 rounded-full">1</span> Primo setup ed utilizzo del nuovo ambiente di sviluppo.</li>
+                        <li class="flex items-start"><span class="bg-indigo-100 text-indigo-800 text-xs font-semibold mr-3 px-2.5 py-1 rounded-full">2</span> Creazione di una patch.</li>
+                        <li class="flex items-start"><span class="bg-indigo-100 text-indigo-800 text-xs font-semibold mr-3 px-2.5 py-1 rounded-full">3</span> Test di una patch locale con Tomcat standalone <span class="text-orange-500 ml-2">(Work in Progress)</span>.</li>
+                    </ul>
+                </section>
+
+            </div>
+
+            <!-- Colonna destra - Timeline e Azioni -->
+            <div class="lg:col-span-1 space-y-8">
+                
+                <!-- Timeline -->
+                <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        Timeline
+                    </h2>
+                    <div class="relative pl-8 space-y-6">
+                        <div class="timeline-item relative">
+                            <h3 class="font-bold text-slate-800">Entro il 02/11/2025</h3>
+                            <p class="text-slate-600 text-sm">Familiarizzazione con il nuovo ambiente di sviluppo.</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <h3 class="font-bold text-red-600">A partire dal 17/11/2025</h3>
+                            <p class="text-slate-600 text-sm">VSS sarà dismesso. Tutte le operazioni avverranno su GitHub.</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <h3 class="font-bold text-slate-800">17/11 - 30/11/2025</h3>
+                            <p class="text-slate-600 text-sm">Periodo di transizione: si lavorerà sulla repo <code class="text-xs">lanarimarco/rdsv6</code>.</p>
+                        </div>
+                         <div class="timeline-item relative">
+                            <h3 class="font-bold text-slate-800">Dal 01/12/2025</h3>
+                            <p class="text-slate-600 text-sm">La repository verrà spostata nella sua sede definitiva: <code class="text-xs">smeup/rdsv6</code>.</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Azioni Richieste -->
+                <section class="bg-indigo-600 text-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-2.236 9.168-5.514C18.358 1.84 18.674 1.75 19 1.75v1.619c0 .691-.421 1.33-1.044 1.637C15.895 6.262 14.113 7.5 12 7.5H7m6.529 4.971l-5.329 5.33a1 1 0 01-1.414 0l-2.829-2.828a1 1 0 010-1.414z" /></svg>
+                        Azioni Richieste
+                    </h2>
+                    <ol class="list-decimal list-inside space-y-3">
+                        <li><strong>Clonare</strong> il repository <code class="bg-indigo-700 px-1.5 py-0.5 rounded text-sm">lanarimarco/rdsv6</code>.</li>
+                        <li><strong>Eseguire il checkout</strong> della propria branch personale (es. <code class="bg-indigo-700 px-1.5 py-0.5 rounded text-sm">feature/andrea</code>).</li>
+                        <li><strong>Attendere e seguire</strong> i video tutorial non appena saranno disponibili.</li>
+                        <li><strong>Sperimentare</strong> il build, l'esecuzione di test e il funzionamento generale del progetto con Maven.</li>
+                        <li><strong>Completare le prove</strong> entro la scadenza del <strong>02/11/2025</strong>.</li>
+                    </ol>
+                </section>
+                
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="text-center mt-12 text-sm text-slate-500">
+            <p>Piano di Migrazione Progetto RDS - Data: 21/10/2025</p>
+        </footer>
+
+    </div>
+</body>
+</html>
