@@ -1179,9 +1179,15 @@
                         </div>
 
                         <div class="component">
+                            <div class="component-name">RDBMSOdpRepository</div>
+                            <div class="component-type">Repository Implementation (Production)</div>
+                            <div class="component-desc">Production repository to retrieve data from AS400/DB2 Oracle and HR Data Provisioning</div>
+                        </div>
+
+                        <div class="component">
                             <div class="component-name">CsvOdpRepository</div>
-                            <div class="component-type">Repository Implementation</div>
-                            <div class="component-desc">CSV-based data storage and retrieval</div>
+                            <div class="component-type">Repository Implementation (Development)</div>
+                            <div class="component-desc">Development repository with CSV-based data storage and retrieval</div>
                         </div>
                     </div>
                 </div>
@@ -1213,7 +1219,7 @@
                         <div class="step-number">4</div>
                         <div class="step-content">
                             <div class="step-layer">Backend → Repository</div>
-                            <div class="step-action">CsvOdpRepository executes search query on CSV data</div>
+                            <div class="step-action">IOdpRepository executes search query on data storage</div>
                         </div>
                     </div>
                     <div class="flow-step" style="animation-delay: 0.5s">
@@ -1280,9 +1286,15 @@
                         </div>
 
                         <div class="component">
+                            <div class="component-name">RDBMSOdpRepository</div>
+                            <div class="component-type">Repository Implementation (Production)</div>
+                            <div class="component-desc">Production repository to retrieve data from AS400/DB2 Oracle and HR Data Provisioning</div>
+                        </div>
+
+                        <div class="component">
                             <div class="component-name">CsvOdpRepository</div>
-                            <div class="component-type">Repository Implementation</div>
-                            <div class="component-desc">Filters ODPs by assignee field</div>
+                            <div class="component-type">Repository Implementation (Development)</div>
+                            <div class="component-desc">Development repository that filters ODPs by assignee field</div>
                         </div>
                     </div>
                 </div>
@@ -1377,13 +1389,19 @@
                         <div class="component">
                             <div class="component-name">IOdpRepository.createOdp()</div>
                             <div class="component-type">Repository Method</div>
-                            <div class="component-desc">Persists ODP to CSV storage, returns generated ID</div>
+                            <div class="component-desc">Persists ODP to storage, returns generated ID</div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-name">RDBMSOdpRepository</div>
+                            <div class="component-type">Implementation (Production)</div>
+                            <div class="component-desc">Production repository to persist data to AS400/DB2 Oracle and HR Data Provisioning</div>
                         </div>
 
                         <div class="component">
                             <div class="component-name">CsvOdpRepository</div>
-                            <div class="component-type">Implementation</div>
-                            <div class="component-desc">Generates unique ID, writes to CSV file</div>
+                            <div class="component-type">Implementation (Development)</div>
+                            <div class="component-desc">Development repository that generates unique ID and writes to CSV file</div>
                         </div>
                     </div>
                 </div>
@@ -1436,7 +1454,7 @@
                         <div class="step-number">7</div>
                         <div class="step-content">
                             <div class="step-layer">Backend</div>
-                            <div class="step-action">CsvOdpRepository.createOdp() persists to CSV, generates ID</div>
+                            <div class="step-action">IOdpRepository.createOdp() persists to storage, generates ID</div>
                         </div>
                     </div>
                     <div class="flow-step" style="animation-delay: 0.8s">
@@ -1505,13 +1523,25 @@
                         <div class="component">
                             <div class="component-name">IOdpRepository.findOdpById()</div>
                             <div class="component-type">Repository Method</div>
-                            <div class="component-desc">Queries ODP by ID from CSV</div>
+                            <div class="component-desc">Queries ODP by ID from storage</div>
                         </div>
 
                         <div class="component">
                             <div class="component-name">IOdpRepository.updateOdp()</div>
                             <div class="component-type">Repository Method</div>
-                            <div class="component-desc">Persists updated ODP to CSV</div>
+                            <div class="component-desc">Persists updated ODP to storage</div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-name">RDBMSOdpRepository</div>
+                            <div class="component-type">Implementation (Production)</div>
+                            <div class="component-desc">Production repository using AS400/DB2 Oracle and HR Data Provisioning</div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-name">CsvOdpRepository</div>
+                            <div class="component-type">Implementation (Development)</div>
+                            <div class="component-desc">Development repository using CSV file storage</div>
                         </div>
                     </div>
                 </div>
@@ -1564,7 +1594,7 @@
                         <div class="step-number">7</div>
                         <div class="step-content">
                             <div class="step-layer">Backend</div>
-                            <div class="step-action">CsvOdpRepository.updateOdp() persists changes to CSV</div>
+                            <div class="step-action">IOdpRepository.updateOdp() persists changes to storage</div>
                         </div>
                     </div>
                     <div class="flow-step" style="animation-delay: 0.8s">
@@ -1634,7 +1664,19 @@
                         <div class="component">
                             <div class="component-name">IOdpRepository.updateOdp()</div>
                             <div class="component-type">Repository Method</div>
-                            <div class="component-desc">Updates state and assignee in CSV</div>
+                            <div class="component-desc">Updates state and assignee in storage</div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-name">RDBMSOdpRepository</div>
+                            <div class="component-type">Implementation (Production)</div>
+                            <div class="component-desc">Production repository using AS400/DB2 Oracle and HR Data Provisioning</div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-name">CsvOdpRepository</div>
+                            <div class="component-type">Implementation (Development)</div>
+                            <div class="component-desc">Development repository using CSV file storage</div>
                         </div>
                     </div>
                 </div>
@@ -1768,9 +1810,15 @@
                         </div>
 
                         <div class="component">
+                            <div class="component-name">RDBMSOdpRepository</div>
+                            <div class="component-type">Implementation (Production)</div>
+                            <div class="component-desc">Production repository: persists approval records to AS400/DB2 Oracle and HR Data Provisioning</div>
+                        </div>
+
+                        <div class="component">
                             <div class="component-name">CsvOdpRepository</div>
-                            <div class="component-type">Implementation</div>
-                            <div class="component-desc">Persists approval record and updates state in CSV</div>
+                            <div class="component-type">Implementation (Development)</div>
+                            <div class="component-desc">Development repository: persists approval record and updates state in CSV</div>
                         </div>
                     </div>
                 </div>
@@ -1911,9 +1959,15 @@
                         </div>
 
                         <div class="component">
+                            <div class="component-name">RDBMSOdpRepository</div>
+                            <div class="component-type">Implementation (Production)</div>
+                            <div class="component-desc">Production repository: records rejection in AS400/DB2 Oracle and HR Data Provisioning</div>
+                        </div>
+
+                        <div class="component">
                             <div class="component-name">CsvOdpRepository</div>
-                            <div class="component-type">Implementation</div>
-                            <div class="component-desc">Records rejection and updates state in CSV</div>
+                            <div class="component-type">Implementation (Development)</div>
+                            <div class="component-desc">Development repository: records rejection and updates state in CSV</div>
                         </div>
                     </div>
                 </div>
@@ -2010,7 +2064,7 @@
                 </div>
                 <div class="legend-item">
                     <div class="legend-icon icon-repository"></div>
-                    <span>Repository Layer (Data Access - CSV)</span>
+                    <span>Repository Layer (Data Access - Production: AS400/DB2/Oracle | Development: CSV)</span>
                 </div>
             </div>
         </div>
@@ -2143,8 +2197,14 @@
                             </li>
                             <li>
                                 <div class="content">
+                                    <strong>RDBMSOdpRepository</strong>
+                                    <div class="description">Production repository implementation for AS400/DB2 Oracle and HR Data Provisioning</div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="content">
                                     <strong>CsvOdpRepository</strong>
-                                    <div class="description">CSV-based implementation for ODP persistence and retrieval</div>
+                                    <div class="description">Development repository implementation with CSV-based persistence and retrieval</div>
                                 </div>
                             </li>
                         </ul>
