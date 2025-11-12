@@ -368,11 +368,11 @@
         .layers-container::after {
             content: '→';
             position: absolute;
-            top: 50%;
+            top: 120px;
             font-size: 4em;
             color: #667eea;
             font-weight: bold;
-            transform: translateY(-50%);
+            transform: translateY(0);
             z-index: 9999;
             animation: arrowPulse 2s ease-in-out infinite;
             text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
@@ -393,11 +393,11 @@
         @keyframes arrowPulse {
             0%, 100% {
                 opacity: 0.7;
-                transform: translateY(-50%) translateX(0);
+                transform: translateY(0) translateX(0);
             }
             50% {
                 opacity: 1;
-                transform: translateY(-50%) translateX(8px);
+                transform: translateY(0) translateX(8px);
             }
         }
 
@@ -832,34 +832,10 @@
                 gap: 40px;
             }
 
-            /* Vertical arrows for mobile - reposition container arrows */
+            /* Hide arrows in mobile mode */
             .layers-container::before,
             .layers-container::after {
-                content: '↓';
-                left: 50% !important;
-                transform: translateX(-50%);
-                animation: arrowPulseVertical 2s ease-in-out infinite;
-            }
-
-            /* First arrow - between Frontend and Service */
-            .layers-container::before {
-                top: calc(33.33% + 50px);
-            }
-
-            /* Second arrow - between Service and Repository */
-            .layers-container::after {
-                top: calc(66.66% + 50px);
-            }
-
-            @keyframes arrowPulseVertical {
-                0%, 100% {
-                    opacity: 0.7;
-                    transform: translateX(-50%) translateY(0);
-                }
-                50% {
-                    opacity: 1;
-                    transform: translateX(-50%) translateY(8px);
-                }
+                display: none;
             }
 
             h1 {
