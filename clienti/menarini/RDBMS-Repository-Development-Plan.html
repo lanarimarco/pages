@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODP RDBMS Repository - Development Plan</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .highlight {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .artifact-count {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .phase {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .database-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #27ae60;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        ul {
+            line-height: 2;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .architecture-diagram {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>ODP RDBMS Repository Implementation - Development Plan</h1>
+
+    <div class="info">
+        <strong>Project:</strong> customers.menarini.projects.odp.backend.repos<br>
+        <strong>Target:</strong> RDBMSOdpRepository implementation<br>
+        <strong>Approach:</strong> Multi-database hybrid architecture (DB2 + Oracle/AS400)<br>
+        <strong>Version:</strong> 3.0
+    </div>
+
+    <div class="section">
+        <h2>1. Executive Summary</h2>
+        <p>
+            This development plan outlines the implementation of <code>RDBMSOdpRepository</code>,
+            an RDBMS-based data access layer for the ODP (Ordine di Pagamento) payment order system.
+            The implementation follows a <strong>hybrid multi-database architecture</strong> where:
+        </p>
+        <ul>
+            <li><span class="database-icon"></span> <strong>DB2 (AS/400)</strong> - Centralized index table and shared reference data</li>
+            <li><span class="database-icon"></span> <strong>Oracle/DB2</strong> - Company-specific ODP data and business tables</li>
+        </ul>
+
+        <div class="highlight">
+            <strong>Key Challenge:</strong> Data is distributed across multiple databases based on company affiliation,
+            requiring dynamic database routing and index table synchronization.
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. Architecture Overview</h2>
+
+        <div class="architecture-diagram">
+┌─────────────────────────────────────────────────────────────┐
+│              RDBMSOdpRepository                             │
+│  (implements IOdpRepository - 25 methods)                   │
+└─────────────────────────────────────────────────────────────┘
+                           │
+           ┌───────────────┴───────────────┐
+           │                               │
+           ▼                               ▼
+┌──────────────────────┐      ┌──────────────────────┐
+│   DB2/AS400          │      │ Oracle/DB2           │
+│   (Centralized)      │      │ (Company-Specific)   │
+├──────────────────────┤      ├──────────────────────┤
+│ • ODP Index Table    │      │ • ODP Main Tables    │
+│ • Companies Table    │      │ • Auth Flow Table    │
+│ • User Roles Table   │      │ • Currencies Table   │
+│                      │      │ • Suppliers Table    │
+│                      │      │ • CDC/CDR Tables     │
+│                      │      │ • AccountVDS Table   │
+└──────────────────────┘      └──────────────────────┘
+        </div>
+
+        <h3>2.1 Database Responsibilities</h3>
+        <table>
+            <tr>
+                <th>Database</th>
+                <th>Stores</th>
+                <th>Usage</th>
+            </tr>
+            <tr>
+                <td><strong>DB2 (AS/400)</strong></td>
+                <td>
+                    • ODP Index (search/count)<br>
+                    • Companies master data<br>
+                    • User-role mappings
+                </td>
+                <td>
+                    Fast search across all companies<br>
+                    Central user management
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Oracle/DB2</strong><br>(Company-based)</td>
+                <td>
+                    • ODP detailed records<br>
+                    • Authorization flow history<br>
+                    • Company-specific reference data
+                </td>
+                <td>
+                    Full ODP CRUD operations<br>
+                    Data isolation per company
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>3. Implementation Approach</h2>
+
+        <div class="phase">
+            <h3 style="margin-top: 0; color: white;">Phase 1: Foundation Layer</h3>
+            <strong>Artifacts: 8</strong> | Focus: Database access infrastructure
+        </div>
+
+        <h3>3.1 Database Connection Management</h3>
+        <ul>
+            <li><code>RDBMSOdpRepository.java</code> - Main repository implementation</li>
+            <li><code>OdpDbConnectionManager.java</code> - Multi-database connection provider</li>
+            <li><code>CompanyDatabaseRouter.java</code> - Routes company to correct database</li>
+        </ul>
+
+        <h3>3.2 Data Mapping Layer</h3>
+        <ul>
+            <li><code>OdpResultSetMapper.java</code> - Maps ResultSet to Odp domain objects</li>
+            <li><code>OdpIndexMapper.java</code> - Maps index table to/from Odp</li>
+            <li><code>AuthFlowResultSetMapper.java</code> - Maps authorization flow data</li>
+            <li><code>ReferenceDataMapper.java</code> - Maps reference entities (Currency, Supplier, etc.)</li>
+        </ul>
+
+        <h3>3.3 Query Builder</h3>
+        <ul>
+            <li><code>OdpSqlQueryBuilder.java</code> - Builds dynamic SQL for search/filter operations</li>
+        </ul>
+
+        <div class="phase">
+            <h3 style="margin-top: 0; color: white;">Phase 2: Core CRUD Operations</h3>
+            <strong>Artifacts: 4 methods</strong> | Focus: Basic data persistence
+        </div>
+
+        <h3>3.4 ODP Lifecycle Methods</h3>
+        <table>
+            <tr>
+                <th>Method</th>
+                <th>Primary DB</th>
+                <th>Secondary DB</th>
+                <th>Complexity</th>
+            </tr>
+            <tr>
+                <td><code>createOdp(Odp)</code></td>
+                <td>Oracle/DB2 (company)</td>
+                <td>DB2 (index insert)</td>
+                <td>Medium - Dual write</td>
+            </tr>
+            <tr>
+                <td><code>findOdpById(String)</code></td>
+                <td>DB2 (get company)</td>
+                <td>Oracle/DB2 (load ODP)</td>
+                <td>Medium - Two-step lookup</td>
+            </tr>
+            <tr>
+                <td><code>updateOdp(Odp)</code></td>
+                <td>Oracle/DB2 (company)</td>
+                <td>DB2 (index update)</td>
+                <td>Medium - Dual write</td>
+            </tr>
+            <tr>
+                <td><code>deleteOdp(String)</code></td>
+                <td>Oracle/DB2 (company)</td>
+                <td>DB2 (index delete)</td>
+                <td>Medium - Dual write</td>
+            </tr>
+        </table>
+
+        <div class="phase">
+            <h3 style="margin-top: 0; color: white;">Phase 3: Search & Query Operations</h3>
+            <strong>Artifacts: 2 methods</strong> | Focus: Efficient data retrieval
+        </div>
+
+        <h3>3.5 Search Methods</h3>
+        <table>
+            <tr>
+                <th>Method</th>
+                <th>Database</th>
+                <th>Key Requirements</th>
+            </tr>
+            <tr>
+                <td><code>searchOdps(...)</code></td>
+                <td>DB2 (index)</td>
+                <td>
+                    • Dynamic WHERE clause building<br>
+                    • Pagination (OFFSET/LIMIT)<br>
+                    • Multi-column sorting<br>
+                    • State filtering
+                </td>
+            </tr>
+            <tr>
+                <td><code>countOdps(...)</code></td>
+                <td>DB2 (index)</td>
+                <td>
+                    • Same WHERE logic as search<br>
+                    • COUNT(*) optimization
+                </td>
+            </tr>
+        </table>
+
+        <div class="phase">
+            <h3 style="margin-top: 0; color: white;">Phase 4: Authorization Workflow</h3>
+            <strong>Artifacts: 4 methods</strong> | Focus: Approval process logic
+        </div>
+
+        <h3>3.6 Authorization Methods</h3>
+        <table>
+            <tr>
+                <th>Method</th>
+                <th>Database</th>
+                <th>Special Logic</th>
+            </tr>
+            <tr>
+                <td><code>nextApprover(Odp)</code></td>
+                <td>External API</td>
+                <td>
+                    <strong>API Call:</strong> https://dilws.menarini.net/api/HRDPData/<br>
+                    Determines next approver based on ODP state
+                </td>
+            </tr>
+            <tr>
+                <td><code>addAuthorizationStep(...)</code></td>
+                <td>Oracle/DB2 (company)</td>
+                <td>
+                    • Validate password (LDAP)<br>
+                    • Insert auth step<br>
+                    • Update ODP state/assignee<br>
+                    • Update index table<br>
+                    <strong>Transactional!</strong>
+                </td>
+            </tr>
+            <tr>
+                <td><code>validatePassword(...)</code></td>
+                <td>LDAP</td>
+                <td>
+                    <strong>Windows Domain Authentication</strong><br>
+                    LDAP call to Windows Domain Server
+                </td>
+            </tr>
+            <tr>
+                <td><code>retrieveAuthorizationFlow(String)</code></td>
+                <td>
+                    DB2 (index) +<br>
+                    Oracle/DB2 (flow)
+                </td>
+                <td>
+                    • Get company from index<br>
+                    • Load flow from company DB
+                </td>
+            </tr>
+        </table>
+
+        <div class="warning">
+            <strong>Critical Integration Points:</strong>
+            <ul>
+                <li><strong>External API:</strong> Menarini HR API for next approver determination</li>
+                <li><strong>LDAP Authentication:</strong> Windows Domain Server for password validation</li>
+                <li><strong>Transaction Management:</strong> Authorization step must be atomic across multiple operations</li>
+            </ul>
+        </div>
+
+        <div class="phase">
+            <h3 style="margin-top: 0; color: white;">Phase 5: Reference Data Access</h3>
+            <strong>Artifacts: 13 methods</strong> | Focus: Master data retrieval
+        </div>
+
+        <h3>3.7 Company Methods (DB2)</h3>
+        <ul>
+            <li><code>retrieveCompanies()</code> - All companies from AS400/DB2</li>
+            <li><code>retrieveCompanies(OdpUser)</code> - User-accessible companies</li>
+            <li><code>findCompanyById(String)</code> - Single company lookup</li>
+        </ul>
+
+        <h3>3.8 Company-Specific Reference Data (Oracle/DB2)</h3>
+        <p><em>All methods below require company parameter to route to correct database:</em></p>
+
+        <table>
+            <tr>
+                <th>Entity Type</th>
+                <th>Retrieve Method</th>
+                <th>Find By ID Method</th>
+            </tr>
+            <tr>
+                <td>Currency</td>
+                <td><code>retrieveCurrencies(company)</code></td>
+                <td><code>findCurrencyById(id, company)</code></td>
+            </tr>
+            <tr>
+                <td>Supplier</td>
+                <td><code>retrieveSuppliers(company)</code></td>
+                <td><code>findSupplierById(id, company)</code></td>
+            </tr>
+            <tr>
+                <td>Account/VDS</td>
+                <td><code>retrieveAccountVDS(company)</code></td>
+                <td><code>findAccountVDSById(id, company)</code></td>
+            </tr>
+            <tr>
+                <td>CDC (Cost Centers)</td>
+                <td><code>retrieveCDCs(company)</code></td>
+                <td><code>findCDCById(id, company)</code></td>
+            </tr>
+            <tr>
+                <td>CDR (Revenue Centers)</td>
+                <td><code>retrieveCDRs(company)</code></td>
+                <td><code>findCDRById(id, company)</code></td>
+            </tr>
+        </table>
+
+        <div class="phase">
+            <h3 style="margin-top: 0; color: white;">Phase 6: User Management</h3>
+            <strong>Artifacts: 1 method</strong> | Focus: User-role mapping
+        </div>
+
+        <h3>3.9 User Methods (DB2)</h3>
+        <ul>
+            <li><code>retrieveOdpUser(String userId)</code> - Load user with role from AS400/DB2</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>4. Artifact Summary</h2>
+
+        <div class="success">
+            <h3 style="margin-top: 0;">Total Implementation Scope</h3>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Count</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><strong>Java Classes</strong></td>
+                    <td class="artifact-count">8</td>
+                    <td>Infrastructure, mappers, query builders</td>
+                </tr>
+                <tr>
+                    <td><strong>Interface Methods</strong></td>
+                    <td class="artifact-count">25</td>
+                    <td>IOdpRepository contract implementation</td>
+                </tr>
+                <tr>
+                    <td><strong>External Integrations</strong></td>
+                    <td class="artifact-count">2</td>
+                    <td>HR API + LDAP authentication</td>
+                </tr>
+                <tr>
+                    <td><strong>Database Connections</strong></td>
+                    <td class="artifact-count">N+1</td>
+                    <td>1 DB2 + N Oracle/DB2 (per company)</td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Queries</strong></td>
+                    <td class="artifact-count">~35</td>
+                    <td>SELECT/INSERT/UPDATE/DELETE statements</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3>4.1 New Java Classes Breakdown</h3>
+        <ol>
+            <li><code>RDBMSOdpRepository.java</code> - Main repository (25 methods)</li>
+            <li><code>OdpDbConnectionManager.java</code> - Multi-DB connection pooling</li>
+            <li><code>CompanyDatabaseRouter.java</code> - Database routing logic</li>
+            <li><code>OdpResultSetMapper.java</code> - ODP entity mapping</li>
+            <li><code>OdpIndexMapper.java</code> - Index table mapping</li>
+            <li><code>AuthFlowResultSetMapper.java</code> - Authorization flow mapping</li>
+            <li><code>ReferenceDataMapper.java</code> - Reference entity mapping</li>
+            <li><code>OdpSqlQueryBuilder.java</code> - Dynamic SQL generation</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>5. Technical Considerations</h2>
+
+        <h3>5.1 Database Schema Requirements</h3>
+        <div class="info">
+            <strong>DB2 Index Table (AS/400):</strong>
+            <ul>
+                <li>ODP_ID (PK)</li>
+                <li>COMPANY_ID (FK)</li>
+                <li>STATE</li>
+                <li>OWNER_USER_ID</li>
+                <li>ASSIGNEE_USER_ID</li>
+                <li>COMPILATION_DATE</li>
+                <li>PROTOCOL_NUMBER</li>
+                <li>AMOUNT</li>
+                <li>CURRENCY_CODE</li>
+                <li>SUPPLIER_CODE</li>
+            </ul>
+        </div>
+
+        <h3>5.2 Transaction Boundaries</h3>
+        <div class="warning">
+            <strong>Critical Atomic Operations:</strong>
+            <ul>
+                <li><code>createOdp</code>: Insert to company DB + index table (2-phase)</li>
+                <li><code>updateOdp</code>: Update company DB + index table (2-phase)</li>
+                <li><code>deleteOdp</code>: Delete from company DB + index table (2-phase)</li>
+                <li><code>addAuthorizationStep</code>: Insert step + update ODP + update index (multi-phase)</li>
+            </ul>
+            <strong>Recommendation:</strong> Use distributed transaction (XA) or compensating transactions
+        </div>
+
+        <h3>5.3 Performance Optimization</h3>
+        <ul>
+            <li><strong>Connection Pooling:</strong> Separate pools for DB2 and each Oracle/DB2 instance</li>
+            <li><strong>PreparedStatement Caching:</strong> Reuse common queries</li>
+            <li><strong>Index Optimization:</strong> Index on COMPANY_ID, STATE, OWNER_USER_ID, ASSIGNEE_USER_ID</li>
+            <li><strong>Batch Operations:</strong> Consider batch updates for index table synchronization</li>
+        </ul>
+
+        <h3>5.4 Error Handling Strategy</h3>
+        <ul>
+            <li><strong>Not Found:</strong> Throw <code>IllegalArgumentException</code></li>
+            <li><strong>Database Errors:</strong> Wrap in <code>RuntimeException</code> with context</li>
+            <li><strong>API Failures:</strong> Fallback logic or circuit breaker pattern</li>
+            <li><strong>LDAP Timeout:</strong> Return false for password validation</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>6. Implementation Phases Timeline</h2>
+
+        <table>
+            <tr>
+                <th>Phase</th>
+                <th>Deliverables</th>
+                <th>Effort</th>
+                <th>Dependencies</th>
+            </tr>
+            <tr>
+                <td><strong>Phase 1</strong><br>Foundation</td>
+                <td>8 classes<br>(Infrastructure)</td>
+                <td>High</td>
+                <td>DB schemas, connection details</td>
+            </tr>
+            <tr>
+                <td><strong>Phase 2</strong><br>CRUD</td>
+                <td>4 methods</td>
+                <td>Medium</td>
+                <td>Phase 1 complete</td>
+            </tr>
+            <tr>
+                <td><strong>Phase 3</strong><br>Search</td>
+                <td>2 methods</td>
+                <td>Medium</td>
+                <td>Phase 1, index table ready</td>
+            </tr>
+            <tr>
+                <td><strong>Phase 4</strong><br>Authorization</td>
+                <td>4 methods</td>
+                <td>High</td>
+                <td>API access, LDAP config</td>
+            </tr>
+            <tr>
+                <td><strong>Phase 5</strong><br>Reference Data</td>
+                <td>13 methods</td>
+                <td>Low-Medium</td>
+                <td>Schema knowledge</td>
+            </tr>
+            <tr>
+                <td><strong>Phase 6</strong><br>User Mgmt</td>
+                <td>1 method</td>
+                <td>Low</td>
+                <td>User tables ready</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>7. Testing Strategy</h2>
+
+        <h3>7.1 Unit Testing</h3>
+        <ul>
+            <li>Mock database connections using Mockito</li>
+            <li>Test each mapper independently with sample ResultSets</li>
+            <li>Verify SQL query generation without database</li>
+        </ul>
+
+        <h3>7.2 Integration Testing</h3>
+        <ul>
+            <li>Use embedded Derby/H2 for initial testing</li>
+            <li>Test against actual DB2 test instance</li>
+            <li>Test multi-database transactions</li>
+            <li>Verify index table synchronization</li>
+        </ul>
+
+        <h3>7.3 Test Data Requirements</h3>
+        <ul>
+            <li>Multiple companies with different database backends</li>
+            <li>ODP records in various states</li>
+            <li>Authorization flows with multiple steps</li>
+            <li>User-role mappings</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>8. Migration Strategy</h2>
+
+        <h3>8.1 From CSV to RDBMS</h3>
+        <div class="info">
+            <p><strong>Current State:</strong> CsvOdpRepository with file-based storage</p>
+            <p><strong>Target State:</strong> RDBMSOdpRepository with multi-database backend</p>
+        </div>
+
+        <h3>8.2 Migration Steps</h3>
+        <ol>
+            <li><strong>Data Migration Tool:</strong> Create utility to migrate CSV to RDBMS</li>
+            <li><strong>Parallel Running:</strong> Run both repositories in parallel (read from both, write to both)</li>
+            <li><strong>Verification:</strong> Compare results between CSV and RDBMS</li>
+            <li><strong>Cutover:</strong> Switch application parameter K2 from CSV to RDBMS</li>
+            <li><strong>Archive:</strong> Keep CSV as backup for rollback</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>9. Risk Assessment</h2>
+
+        <table>
+            <tr>
+                <th>Risk</th>
+                <th>Impact</th>
+                <th>Probability</th>
+                <th>Mitigation</th>
+            </tr>
+            <tr>
+                <td>Multi-DB transaction failures</td>
+                <td>High</td>
+                <td>Medium</td>
+                <td>Implement compensation logic, XA transactions</td>
+            </tr>
+            <tr>
+                <td>Index table sync issues</td>
+                <td>High</td>
+                <td>Medium</td>
+                <td>Reconciliation job, monitoring</td>
+            </tr>
+            <tr>
+                <td>External API unavailability</td>
+                <td>Medium</td>
+                <td>Low</td>
+                <td>Circuit breaker, fallback logic</td>
+            </tr>
+            <tr>
+                <td>LDAP authentication timeouts</td>
+                <td>Medium</td>
+                <td>Medium</td>
+                <td>Timeout configuration, retry logic</td>
+            </tr>
+            <tr>
+                <td>Performance degradation</td>
+                <td>Medium</td>
+                <td>Low</td>
+                <td>Connection pooling, query optimization</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>10. Success Criteria</h2>
+
+        <div class="success">
+            <h3 style="margin-top: 0;">Definition of Done</h3>
+            <ul>
+                <li>All 25 IOdpRepository methods implemented and tested</li>
+                <li>Multi-database routing working correctly</li>
+                <li>Index table stays synchronized with company databases</li>
+                <li>External API and LDAP integrations functional</li>
+                <li>Transaction integrity maintained across databases</li>
+                <li>Search performance meets requirements (sub-second for typical queries)</li>
+                <li>Migration from CSV completed successfully</li>
+                <li>Unit test coverage &gt; 80%</li>
+                <li>Integration tests pass against all database types</li>
+                <li>Documentation updated (JavaDoc, package-info.java)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section" style="background: #ecf0f1; border-left: 4px solid #95a5a6;">
+        <h2>Document Metadata</h2>
+        <p>
+            <strong>Created:</strong> 2025-11-14<br>
+            <strong>Package:</strong> com.rds.software.customers.menarini.projects.odp.backend.repos<br>
+            <strong>Target Class:</strong> RDBMSOdpRepository<br>
+            <strong>Interface:</strong> IOdpRepository (25 methods)<br>
+            <strong>Total Artifacts:</strong> ~8 Java classes + 25 method implementations<br>
+            <strong>External Dependencies:</strong> HR API, LDAP, DB2, Oracle/DB2
+        </p>
+    </div>
+</body>
+</html>
