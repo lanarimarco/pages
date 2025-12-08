@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMAD-METHOD - Presentazione Interattiva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 1000px;
+            height: 80vh;
+            padding: 60px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 3.5em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin: 25px 0 15px 0;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 1.3em;
+            line-height: 1.6;
+        }
+
+        .iteration {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .iteration.second {
+            border-left-color: #764ba2;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .box {
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .pros {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .cons {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .box h3 {
+            margin-top: 0;
+        }
+
+        .pros h3 {
+            color: #28a745;
+        }
+
+        .cons h3 {
+            color: #dc3545;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-top: 15px;
+        }
+
+        li {
+            margin: 12px 0;
+            line-height: 1.5;
+        }
+
+        .comparison {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            border: 3px solid #667eea;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .comparison .stats {
+            font-size: 2em;
+            font-weight: bold;
+            color: #764ba2;
+            margin: 20px 0;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.5em;
+            margin-top: -20px;
+            margin-bottom: 40px;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .conclusion-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border: 3px solid #f39c12;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .suggestion-box {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Titolo -->
+        <div class="slide active">
+            <h1>BMAD-METHOD</h1>
+            <p class="subtitle">Analisi Comparativa dell'Esperienza di Sviluppo</p>
+            <div class="content">
+                <div style="text-align: center; margin-top: 80px;">
+                    <p style="font-size: 1.8em; color: #667eea; font-weight: bold;">
+                        Un'analisi pratica del metodo BMAD
+                    </p>
+                    <p style="font-size: 1.3em; color: #666; margin-top: 40px;">
+                        Esperienza reale di sviluppo • Token usage • Overhead • Efficienza
+                    </p>
+                </div>
+            </div>
+            <div class="navigation">
+                <button disabled>Precedente</button>
+                <div class="progress">Slide 1 / 8</div>
+                <button onclick="nextSlide()">Successiva</button>
+            </div>
+        </div>
+
+        <!-- Slide 2: Task di Comparazione -->
+        <div class="slide">
+            <h2><span class="emoji">🎯</span>Task di Comparazione</h2>
+            <div class="content">
+                <div style="background: #e8f5e9; border: 3px solid #4caf50; padding: 40px; border-radius: 15px; margin: 40px 0;">
+                    <h3 style="color: #2e7d32; margin-bottom: 30px; font-size: 2em;">Obiettivo</h3>
+                    <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;">
+                            <p style="font-size: 1.6em; color: white; font-weight: bold; margin: 0;">
+                                📇 Contacts Manager App
+                            </p>
+                        </div>
+                        <ul style="font-size: 1.4em; color: #333; list-style: none; margin: 0;">
+                            <li style="padding: 20px; border-left: 5px solid #4caf50; margin-bottom: 20px; background: #f1f8e9;">
+                                <strong style="color: #2e7d32; font-size: 1.1em;">Backend:</strong>
+                                <span style="margin-left: 15px; color: #555;">Java REST API</span>
+                            </li>
+                            <li style="padding: 20px; border-left: 5px solid #2196f3; background: #e3f2fd;">
+                                <strong style="color: #1565c0; font-size: 1.1em;">Frontend:</strong>
+                                <span style="margin-left: 15px; color: #555;">React</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 40px;">
+                    <p style="font-size: 1.3em; color: #666; font-style: italic;">
+                        Stesso task utilizzato per confrontare BMAD-METHOD e Claude
+                    </p>
+                </div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevSlide()">Precedente</button>
+                <div class="progress">Slide 2 / 8</div>
+                <button onclick="nextSlide()">Successiva</button>
+            </div>
+        </div>
+
+        <!-- Slide 3: Prima Iterazione -->
+        <div class="slide">
+            <h2><span class="emoji">🔄</span>BMAD - Prima Iterazione</h2>
+            <div class="content">
+                <div class="iteration">
+                    <span class="time-badge">⏱️ ~2 ore</span>
+                    <h3>Obiettivo raggiunto:</h3>
+                    <p style="font-size: 1.2em; margin: 15px 0;">
+                        Produzione di <span class="highlight">implementation-readiness-report-2025-12-07.md</span>
+                    </p>
+                    <p style="font-size: 1.1em; margin: 15px 0 10px 0; color: #667eea; font-weight: bold;">
+                        Documenti creati:
+                    </p>
+                    <ul style="font-size: 1.1em; margin-left: 40px; color: #555;">
+                        <li style="margin: 8px 0;">prd.md</li>
+                        <li style="margin: 8px 0;">ux-design-specification.md</li>
+                        <li style="margin: 8px 0;">architecture.md</li>
+                        <li style="margin: 8px 0;">epics.md</li>
+                    </ul>
+
+                    <h3 style="margin-top: 30px;">Interruzione:</h3>
+                    <p style="font-size: 1.2em; color: #dc3545; margin: 15px 0;">
+                        <strong>❌ Quota Claude esaurita</strong>
+                    </p>
+                    <p style="font-style: italic; color: #666;">
+                        (Timer di reset: ogni 5 ore)
+                    </p>
+                </div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevSlide()">Precedente</button>
+                <div class="progress">Slide 3 / 8</div>
+                <button onclick="nextSlide()">Successiva</button>
+            </div>
+        </div>
+
+        <!-- Slide 4: Seconda Iterazione -->
+        <div class="slide">
+            <h2><span class="emoji">🔄</span>BMAD - Seconda Iterazione</h2>
+            <div class="content">
+                <div class="iteration second">
+                    <span class="time-badge" style="background: #764ba2;">⏱️ 1,5 ore</span>
+                    <h3>Obiettivo raggiunto:</h3>
+                    <p style="font-size: 1.3em; margin: 15px 0; color: #dc3545;">
+                        😞 <strong>1 story su 26</strong> - Inizializzazione progetto React frontend
+                    </p>
+                    <p style="font-size: 1em; margin: 10px 0; color: #666; font-style: italic;">
+                        (Partendo da <span class="highlight">implementation-readiness-report</span>)
+                    </p>
+
+                    <h3 style="margin-top: 30px;">Risultato:</h3>
+                    <p style="font-size: 1.2em; color: #dc3545; margin: 15px 0;">
+                        <strong>🛑 Rinunciato</strong>
+                    </p>
+                    <p style="font-style: italic; color: #666; font-size: 1.1em;">
+                        Quota Claude ancora in esaurimento nonostante l'abbonamento Pro
+                    </p>
+                </div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevSlide()">Precedente</button>
+                <div class="progress">Slide 4 / 8</div>
+                <button onclick="nextSlide()">Successiva</button>
+            </div>
+        </div>
+
+        <!-- Slide 5: Pro e Contro -->
+        <div class="slide">
+            <h2><span class="emoji">⚖️</span>BMAD - Valutazione</h2>
+            <div class="content">
+                <div class="pros-cons">
+                    <div class="box pros">
+                        <h3><span class="emoji">✅</span>Mi piace</h3>
+                        <ul>
+                            <li><strong>Documentazione completa</strong> - tutto viene documentato automaticamente</li>
+                            <li><strong>Diversi agenti specializzati</strong> - chat con tipologie diverse di agenti</li>
+                            <li><strong>Stato del progetto</strong> - bmm-workflow-status.yaml</li>
+                            <li><strong>Stato sprint</strong> - sprint-status.yaml</li>
+                        </ul>
+                    </div>
+
+                    <div class="box cons">
+                        <h3><span class="emoji">❌</span>Non mi piace</h3>
+                        <ul>
+                            <li><strong>Consumo eccessivo di token</strong> - impossibile usarlo con Claude Pro</li>
+                            <li><strong>Overhead iniziale enorme</strong> - tanto tempo speso in setup iniziale</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevSlide()">Precedente</button>
+                <div class="progress">Slide 5 / 8</div>
+                <button onclick="nextSlide()">Successiva</button>
+            </div>
+        </div>
+
+        <!-- Slide 6: Colpo di Genio -->
+        <div class="slide">
+            <h2><span class="emoji">💡</span>Colpo di Genio</h2>
+            <div class="content">
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column;">
+                    <div style="background: linear-gradient(135deg, #fff9e6 0%, #ffeb99 100%); border: 5px solid #ffc107; padding: 60px; border-radius: 20px; text-align: center; box-shadow: 0 20px 40px rgba(255, 193, 7, 0.3);">
+                        <div style="font-size: 5em; margin-bottom: 30px;">💡</div>
+                        <p style="font-size: 2.5em; margin: 0; color: #333; font-weight: bold; line-height: 1.4;">
+                            E se facessi la stessa cosa<br>con Claude?
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevSlide()">Precedente</button>
+                <div class="progress">Slide 6 / 8</div>
+                <button onclick="nextSlide()">Successiva</button>
+            </div>
+        </div>
+
+        <!-- Slide 7: Confronto con Claude -->
+        <div class="slide">
+            <h2><span class="emoji">🆚</span>Claude</h2>
+            <div class="content">
+                <div class="comparison">
+                    <h3 style="color: #667eea; margin-bottom: 30px;">Risultati Claude</h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+                        <div>
+                            <p style="font-size: 1.2em; color: #666;">Tempo impiegato</p>
+                            <div class="stats">⏱️ 10 minuti</div>
+                        </div>
+                        <div>
+                            <p style="font-size: 1.2em; color: #666;">Token utilizzati</p>
+                            <div class="stats">📊 1/20 di BMAD</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #28a745; color: white; padding: 20px; border-radius: 10px; margin-top: 30px;">
+                        <p style="font-size: 1.3em; font-weight: bold;">
+                            ✨ App React + Backend Java funzionante
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevSlide()">Precedente</button>
+                <div class="progress">Slide 7 / 8</div>
+                <button onclick="nextSlide()">Successiva</button>
+            </div>
+        </div>
+
+        <!-- Slide 8: Conclusioni e Suggerimenti -->
+        <div class="slide">
+            <h2><span class="emoji">💡</span>Conclusioni</h2>
+            <div class="content">
+                <div class="conclusion-box">
+                    <h3 style="color: #f39c12; margin-bottom: 20px;">Punti chiave</h3>
+                    <ul style="font-size: 1.1em;">
+                        <li><strong>Non efficiente per task normali</strong> - troppo overhead e consumo di risorse</li>
+                        <li style="margin-top: 20px;"><strong>Possibile potenziale per grandi modernizzazioni</strong>
+                            <br><span style="font-size: 0.9em; color: #666;">(es: modernizzare smeuperp)</span>
+                            <br><span style="font-size: 0.9em; font-style: italic; color: #dc3545;">⚠️ Tutto da dimostrare</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="suggestion-box">
+                    <h3 style="margin-bottom: 20px; color: #ffffff; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">💭 Suggerimenti</h3>
+                    <p style="font-size: 1.2em;">
+                        Scegliere un task specifico e confrontare:<br>
+                        <strong>BMAD-METHOD vs Copilot vs Claude</strong>
+                    </p>
+                </div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevSlide()">Precedente</button>
+                <div class="progress">Slide 8 / 8</div>
+                <button disabled>Successiva</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = n;
+            slides[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>
