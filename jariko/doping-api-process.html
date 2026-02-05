@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramma degli Stati di una API drogata</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: white;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.35);
+            position: relative;
+            z-index: 2;
+        }
+
+        header h1 {
+            font-size: 1.4em;
+            margin-bottom: 0;
+        }
+
+        header p {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 30px 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: 3px 0 12px rgba(0, 0, 0, 0.06);
+            position: relative;
+            z-index: 1;
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+            padding: 30px 10px;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .sidebar-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .sidebar-toggle:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .sidebar-title {
+            font-size: 0.85em;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .sidebar-title {
+            display: none;
+        }
+
+        .sidebar h2 {
+            font-size: 0.85em;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+
+        .state-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            white-space: nowrap;
+        }
+
+        .state-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar.collapsed .state-list {
+            display: none;
+        }
+
+        .state-item.da-realizzare {
+            background: #fff3cd;
+            color: #856404;
+            border-left-color: #ffc107;
+        }
+
+        .state-item.in-corso {
+            background: #cfe2ff;
+            color: #084298;
+            border-left-color: #0d6efd;
+        }
+
+        .state-item.completato {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-left-color: #198754;
+        }
+
+        .state-item.da-testare {
+            background: #e0d5ff;
+            color: #3d0066;
+            border-left-color: #667eea;
+        }
+
+        .state-item.in-errore {
+            background: #f8d7da;
+            color: #842029;
+            border-left-color: #dc3545;
+        }
+
+        .state-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .state-item.active {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-width: 0;
+        }
+
+        .diagram-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .diagram-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 14px;
+            padding: 24px;
+            margin: 12px 0;
+            min-height: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .info-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .info-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .transition-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .transition-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .transition-item.active {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+        }
+
+        .transition-from-to {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .state-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .state-badge.da-realizzare { background: #ffc107; color: #000; }
+        .state-badge.in-corso { background: #0d6efd; color: white; }
+        .state-badge.completato { background: #198754; color: white; }
+        .state-badge.da-testare { background: #667eea; color: white; }
+        .state-badge.in-errore { background: #dc3545; color: white; }
+
+        .transition-arrow {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .transition-action {
+            font-size: 0.9em;
+            color: #666;
+            padding: 8px 0;
+            border-top: 1px solid #eee;
+        }
+
+        .transition-action strong {
+            color: #667eea;
+        }
+
+        .transition-action .source {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin: 4px 4px 4px 0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+            padding: 12px 18px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 6px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.8em;
+            border-top: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .state-detail {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .state-detail h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .state-detail p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .state-detail ul {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .state-detail li {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .content {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid #e9ecef;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            header h1 {
+                font-size: 1.2em;
+            }
+
+            .transition-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Processo doping API</h1>
+        </header>
+
+        <div class="content">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2 class="sidebar-title">Stati Disponibili</h2>
+                    <button class="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+                </div>
+                <div class="state-list">
+                    <div class="state-item da-realizzare active" data-state="da-realizzare">⏰ Da realizzare</div>
+                    <div class="state-item in-corso" data-state="in-corso">⚙️ In Corso</div>
+                    <div class="state-item da-testare" data-state="da-testare">🧪 Da testare</div>
+                    <div class="state-item completato" data-state="completato">✅ Completato</div>
+                    <div class="state-item in-errore" data-state="in-errore">❌ In Errore</div>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="diagram">Diagramma</button>
+                    <button class="tab-button" data-tab="transitions">Transizioni</button>
+                    <button class="tab-button" data-tab="details">Dettagli</button>
+                </div>
+
+                <!-- TAB: DIAGRAM -->
+                <div id="diagram" class="tab-content active">
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffc107;"></div>
+                            <span>Da realizzare (Stato Iniziale)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #0d6efd;"></div>
+                            <span>In Corso</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #198754;"></div>
+                            <span>Completato</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #667eea;"></div>
+                            <span>Da testare</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #dc3545;"></div>
+                            <span>In Errore</span>
+                        </div>
+                    </div>
+
+                    <div class="diagram-container">
+                        <svg viewBox="0 0 950 515" preserveAspectRatio="xMidYMid meet" style="max-width: 100%; width: 100%;">
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#667eea" />
+                                </marker>
+                                <marker id="arrowhead-error" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#dc3545" />
+                                </marker>
+                                <marker id="arrowhead-success" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#198754" />
+                                </marker>
+                            </defs>
+
+                            <!-- ===== STATI: flusso sinistro→destra, In Errore sotto ===== -->
+
+                            <!-- Da realizzare -->
+                            <circle cx="100" cy="200" r="45" fill="#ffc107" stroke="#f39c12" stroke-width="2.5"/>
+                            <text x="100" y="196" text-anchor="middle" font-size="20" fill="white">⏰</text>
+                            <text x="100" y="268" text-anchor="middle" font-size="12" font-weight="600" fill="#444">Da realizzare</text>
+
+                            <!-- In Corso -->
+                            <circle cx="330" cy="200" r="45" fill="#0d6efd" stroke="#0c63e4" stroke-width="2.5"/>
+                            <text x="330" y="196" text-anchor="middle" font-size="20" fill="white">⚙️</text>
+                            <text x="330" y="268" text-anchor="middle" font-size="12" font-weight="600" fill="#444">In Corso</text>
+
+                            <!-- Da testare -->
+                            <circle cx="560" cy="200" r="45" fill="#667eea" stroke="#5a67d8" stroke-width="2.5"/>
+                            <text x="560" y="196" text-anchor="middle" font-size="20" fill="white">🧪</text>
+                            <text x="560" y="268" text-anchor="middle" font-size="12" font-weight="600" fill="#444">Da testare</text>
+
+                            <!-- Completato -->
+                            <circle cx="790" cy="200" r="45" fill="#198754" stroke="#157347" stroke-width="2.5"/>
+                            <text x="790" y="196" text-anchor="middle" font-size="20" fill="white">✅</text>
+                            <text x="790" y="268" text-anchor="middle" font-size="12" font-weight="600" fill="#444">Completato</text>
+
+                            <!-- In Errore -->
+                            <circle cx="675" cy="400" r="45" fill="#dc3545" stroke="#bd2130" stroke-width="2.5"/>
+                            <text x="675" y="396" text-anchor="middle" font-size="20" fill="white">❌</text>
+                            <text x="675" y="468" text-anchor="middle" font-size="12" font-weight="600" fill="#444">In Errore</text>
+
+                            <!-- ===== FLUSSO PRINCIPALE (orizzontale) ===== -->
+
+                            <!-- Da realizzare → In Corso : TRASFERISCI -->
+                            <path d="M 145 200 L 283 200" stroke="#667eea" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+                            <text x="214" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#667eea">TRASFERISCI</text>
+
+                            <!-- In Corso → Da testare : RILASCIA -->
+                            <path d="M 375 200 L 513 200" stroke="#667eea" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+                            <text x="444" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#667eea">RILASCIA</text>
+
+                            <!-- Da testare → Completato : SIM OK -->
+                            <path d="M 605 200 L 743 200" stroke="#198754" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-success)"/>
+                            <text x="674" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#198754">SIM OK</text>
+
+                            <!-- ===== DIAGONALI verso/da In Errore ===== -->
+
+                            <!-- Da testare → In Errore : SIM KO -->
+                            <path d="M 582 239 L 653 361" stroke="#dc3545" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-error)"/>
+                            <text x="598" y="292" text-anchor="end" font-size="11" font-weight="600" fill="#dc3545">SIM KO</text>
+
+                            <!-- Completato → In Errore : SIM KO (curva destra) -->
+                            <path d="M 770 238 Q 800 325 700 362" stroke="#dc3545" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-error)"/>
+                            <text x="797" y="315" text-anchor="start" font-size="11" font-weight="600" fill="#dc3545">SIM KO</text>
+
+                            <!-- In Errore → Completato : SIM OK (curva sinistra) -->
+                            <path d="M 696 360 Q 655 285 765 237" stroke="#198754" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-success)"/>
+                            <text x="650" y="278" text-anchor="end" font-size="11" font-weight="600" fill="#198754">SIM OK</text>
+
+                            <!-- ===== ARCO INFERIORE: In Errore → In Corso ===== -->
+                            <!-- TRASFERISCI / ANNULLA RIL. -->
+                            <path d="M 634 418 Q 440 505 348 242" stroke="#667eea" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+                            <text x="500" y="452" text-anchor="middle" font-size="11" font-weight="600" fill="#667eea">TRASFERISCI / ANNULLA RIL.</text>
+
+                            <!-- ===== ARCHI SUPERIORI: ritorno a In Corso ===== -->
+
+                            <!-- Da testare → In Corso : TRASFERISCI / ANNULLA RIL. -->
+                            <path d="M 525 156 Q 444 90 358 156" stroke="#667eea" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                            <text x="410" y="122" text-anchor="middle" font-size="10" font-weight="600" fill="#667eea">TRASFERISCI / ANNULLA RIL.</text>
+
+                            <!-- Completato → In Corso : TRASFERISCI / ANNULLA RIL. -->
+                            <path d="M 762 156 Q 548 18 345 156" stroke="#667eea" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                            <text x="548" y="60" text-anchor="middle" font-size="10" font-weight="600" fill="#667eea">TRASFERISCI / ANNULLA RIL.</text>
+
+                            <!-- ===== SELF-LOOP: In Errore → In Errore ===== -->
+                            <!-- SIM KO -->
+                            <path d="M 690 440 C 720 490 630 490 660 440" stroke="#dc3545" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-error)"/>
+                            <text x="675" y="505" text-anchor="middle" font-size="10" font-weight="600" fill="#dc3545">SIM KO</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- TAB: TRANSITIONS -->
+                <div id="transitions" class="tab-content">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">Tutte le Transizioni di Stato</h3>
+                    <div class="transition-list">
+                        <div class="transition-item active" data-transition="da-realizzare-to-in-corso">
+                            <div class="transition-from-to">
+                                <span class="state-badge da-realizzare">⏰ Da realizzare</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-corso">⚙️ In Corso</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> TRASFERISCI<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Trasferisce tutte le risorse dell'API nel mex smeuperp
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="in-corso-to-da-testare">
+                            <div class="transition-from-to">
+                                <span class="state-badge in-corso">⚙️ In Corso</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge da-testare">🧪 Da testare</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> RILASCIA<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Branch di sviluppo mergiata nella develop - l'API è pronta per test e simulazione
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="da-testare-to-completato">
+                            <div class="transition-from-to">
+                                <span class="state-badge da-testare">🧪 Da testare</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge completato">✅ Completato</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> SIMULAZIONE (OK)<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Simulazione riuscita - il doping è Completato
+                            </div>
+                        </div>
+
+
+                        <div class="transition-item" data-transition="da-testare-to-errore">
+                            <div class="transition-from-to">
+                                <span class="state-badge da-testare">🧪 Da testare</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-errore">❌ In Errore</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> SIMULAZIONE (KO)<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Simulazione fallita - il doping torna a In errore
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="completato-to-errore">
+                            <div class="transition-from-to">
+                                <span class="state-badge completato">✅ Completato</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-errore">❌ In Errore</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> SIMULAZIONE (KO)<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Simulazione fallita - il doping torna a In errore
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="errore-to-completato">
+                            <div class="transition-from-to">
+                                <span class="state-badge in-errore">❌ In Errore</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge completato">✅ Completato</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> SIMULAZIONE (OK)<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Simulazione riuscita - il doping è Completato
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="errore-to-in-corso">
+                            <div class="transition-from-to">
+                                <span class="state-badge in-errore">❌ In Errore</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-corso">⚙️ In Corso</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> ANNULLA RILASCIO<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Dopo la correzione del codice, l'annullamento del rilascio riporta l'API in In corso per un nuovo rilascio
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="completato-to-in-corso-trasferisci">
+                            <div class="transition-from-to">
+                                <span class="state-badge completato">✅ Completato</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-corso">⚙️ In Corso</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> TRASFERISCI<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Trasferisce le risorse per un nuovo ciclo di sviluppo
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="completato-to-in-corso-annulla">
+                            <div class="transition-from-to">
+                                <span class="state-badge completato">✅ Completato</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-corso">⚙️ In Corso</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> ANNULLA RILASCIO<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Annulla il rilascio e riporta l'API in sviluppo
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="da-testare-to-in-corso-trasferisci">
+                            <div class="transition-from-to">
+                                <span class="state-badge da-testare">🧪 Da testare</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-corso">⚙️ In Corso</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> TRASFERISCI<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Trasferisce le risorse per un nuovo ciclo di sviluppo
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="da-testare-to-in-corso-annulla">
+                            <div class="transition-from-to">
+                                <span class="state-badge da-testare">🧪 Da testare</span>
+                                <span class="transition-arrow">→</span>
+                                <span class="state-badge in-corso">⚙️ In Corso</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> ANNULLA RILASCIO<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Annulla il rilascio e riporta l'API in sviluppo per correzioni
+                            </div>
+                        </div>
+
+                        <div class="transition-item" data-transition="errore-to-errore">
+                            <div class="transition-from-to">
+                                <span class="state-badge in-errore">❌ In Errore</span>
+                                <span class="transition-arrow">↻</span>
+                                <span class="state-badge in-errore">❌ In Errore</span>
+                            </div>
+                            <div class="transition-action">
+                                <strong>Azione:</strong> SIMULAZIONE (KO)<br/>
+                                <span class="source">📍 API Drogata</span><br/>
+                                <strong>Descrizione:</strong> Simulazione fallita - il doping rimane in errore
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: DETAILS -->
+                <div id="details" class="tab-content">
+                    <div id="state-details">
+                        <div class="state-detail" id="detail-da-realizzare">
+                            <h4>⏰ Stato: Da realizzare</h4>
+                            <p>Stato iniziale del ciclo di vita dell'API drogata.</p>
+                            <p><strong>Caratteristiche:</strong></p>
+                            <ul>
+                                <li>È lo stato iniziale per tutte le API marcate come "Da drogare"</li>
+                                <li>Il doping dell'API non è ancora iniziato</li>
+                                <li>Non sono disponibili azioni TEST o SIMULAZIONE</li>
+                                <li>È possibile solo il trasferimento delle risorse</li>
+                            </ul>
+                        </div>
+
+                        <div class="state-detail" id="detail-in-corso">
+                            <h4>⚙️ Stato: In Corso</h4>
+                            <p>L'API è in fase di sviluppo dopo il trasferimento delle risorse.</p>
+                            <p><strong>Caratteristiche:</strong></p>
+                            <ul>
+                                <li>Raggiunto dopo l'azione TRASFERISCI (da Da realizzare, Completato o Da testare) o dopo ANNULLA RILASCIO (da In Errore, Completato o Da testare)</li>
+                                <li>Quando lo sviluppatore ha terminato lo sviluppo effettua la merge della branch di sviluppo nella develop</li>
+                                <li>È disponibile l'azione RILASCIA per il rilascio</li>
+                                <li><strong>TRASFERISCI NON è disponibile in questo stato</strong></li>
+                                <li><strong>TEST e SIMULAZIONE NON sono disponibili</strong> per l'API Drogata in questo stato</li>
+                                <li>TEST è disponibile solo per RPGLE</li>
+                            </ul>
+                        </div>
+
+                        <div class="state-detail" id="detail-completato">
+                            <h4>✅ Stato: Completato</h4>
+                            <p>L'API ha completato con successo la simulazione.</p>
+                            <p><strong>Caratteristiche:</strong></p>
+                            <ul>
+                                <li>Raggiunto dopo una SIMULAZIONE riuscita (OK)</li>
+                                <li>L'API è funzionante e stabile</li>
+                                <li>Sono disponibili TEST e SIMULAZIONE</li>
+                                <li>Sono disponibili TRASFERISCI e ANNULLA RILASCIO per un nuovo ciclo</li>
+                                <li>Una simulazione fallita lo riporta a In errore</li>
+                            </ul>
+                        </div>
+
+                        <div class="state-detail" id="detail-da-testare">
+                            <h4>🧪 Stato: Da testare</h4>
+                            <p>L'API è stata rilasciata (branch rilasciata nella develop) e attende il risultato della simulazione.</p>
+                            <p><strong>Caratteristiche:</strong></p>
+                            <ul>
+                                <li>Raggiunto dopo l'azione RILASCIA</li>
+                                <li>Attende il risultato della simulazione per proseguire</li>
+                                <li>Sono disponibili TEST e SIMULAZIONE</li>
+                                <li>Sono disponibili TRASFERISCI e ANNULLA RILASCIO per ricominciare lo sviluppo</li>
+                                <li>Una simulazione riuscita lo porta a Completato</li>
+                                <li>Una simulazione fallita lo porta a In errore</li>
+                            </ul>
+                        </div>
+
+                        <div class="state-detail" id="detail-in-errore">
+                            <h4>❌ Stato: In Errore</h4>
+                            <p>L'API ha riscontrato un errore durante la simulazione.</p>
+                            <p><strong>Caratteristiche:</strong></p>
+                            <ul>
+                                <li>Raggiunto quando una SIMULAZIONE fallisce (KO)</li>
+                                <li>Sono disponibili TEST e SIMULAZIONE per debug</li>
+                                <li>Una simulazione riuscita lo porta a Completato</li>
+                                <li>Una simulazione fallita lo mantiene in errore</li>
+                                <li>L'azione ANNULLA RILASCIO lo riporta a In corso per un nuovo rilascio</li>
+                                <li>Permette di eseguire nuovi tentativi di simulazione</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <footer>
+            <p>📊 Presentazione Interattiva | Gestione API Drogata | © 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        // Gestione dei tab
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+
+                // Rimuovi classe active da tutti i tab
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+                // Aggiungi classe active al tab selezionato
+                button.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // Gestione della selezione degli stati nella sidebar
+        document.querySelectorAll('.state-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const state = item.getAttribute('data-state');
+
+                // Rimuovi classe active da tutti gli stati
+                document.querySelectorAll('.state-item').forEach(s => s.classList.remove('active'));
+                item.classList.add('active');
+
+                // Passa al tab details e mostra i dettagli dello stato
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+                document.querySelector('[data-tab="details"]').classList.add('active');
+                document.getElementById('details').classList.add('active');
+
+                // Nascondi tutti i dettagli e mostra quello selezionato
+                document.querySelectorAll('.state-detail').forEach(d => d.style.display = 'none');
+                document.getElementById(`detail-${state}`).style.display = 'block';
+            });
+        });
+
+        // Gestione dei click sulle transizioni
+        document.querySelectorAll('.transition-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Rimuovi classe active da tutti i transition
+                document.querySelectorAll('.transition-item').forEach(t => t.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // Inizializza il primo stato dettagliato
+        document.getElementById('detail-in-corso').style.display = 'none';
+        document.getElementById('detail-completato').style.display = 'none';
+        document.getElementById('detail-da-testare').style.display = 'none';
+        document.getElementById('detail-in-errore').style.display = 'none';
+
+        // Gestione del collasso della sidebar intera
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            sidebarToggle.textContent = sidebar.classList.contains('collapsed') ? '→' : '☰';
+        });
+    </script>
+</body>
+</html>

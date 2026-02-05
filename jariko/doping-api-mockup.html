@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione API - Drogata e RPGLE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            color: #1e293b;
+        }
+
+        /* RICERCA VIEW */
+        .view-ricerca {
+            min-height: 100vh;
+            background: #f1f5f9;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .view-ricerca.hidden {
+            display: none;
+        }
+
+        .ricerca-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .ricerca-header {
+            margin-bottom: 2rem;
+        }
+
+        .ricerca-header h1 {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .ricerca-header p {
+            color: #64748b;
+            margin-top: 0.5rem;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.875rem;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #eff6ff;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            color: #475569;
+        }
+
+        .codice {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .drogata-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 1px solid;
+        }
+
+        .drogata-badge.si {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fcd34d;
+        }
+
+        .drogata-badge.no {
+            background: #f3f4f6;
+            color: #4b5563;
+            border-color: #e5e7eb;
+        }
+
+        .drogata-badge.indeciso {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #e2e8f0;
+        }
+
+        .da-drogare-section {
+            margin-top: 0.75rem;
+        }
+
+        .da-drogare-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.35rem;
+        }
+
+        .da-drogare-toggle {
+            display: flex;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            background: #f1f5f9;
+        }
+
+        .da-drogare-btn {
+            flex: 1;
+            padding: 0.4rem 0;
+            border: none;
+            background: transparent;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .da-drogare-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .da-drogare-btn.active-indeciso {
+            background: #cbd5e1;
+            color: #475569;
+        }
+
+        .da-drogare-btn.active-si {
+            background: #fcd34d;
+            color: #92400e;
+        }
+
+        .da-drogare-btn.active-no {
+            background: white;
+            color: #4b5563;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .stato-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .stato-badge.da-fare {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fcd34d;
+        }
+
+        .stato-badge.in-corso {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #93c5fd;
+        }
+
+        .stato-badge.fatto {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #86efac;
+        }
+
+        .stato-badge.rilasciato {
+            background: #e0e7ff;
+            color: #3730a3;
+            border-color: #c7d2fe;
+        }
+
+        .stato-badge.in-errore {
+            background: #fee2e2;
+            color: #7f1d1d;
+            border-color: #fca5a5;
+        }
+
+        .non-applicabile {
+            color: #cbd5e1;
+            font-style: italic;
+            font-size: 0.875rem;
+        }
+
+        /* GESTIONE VIEW */
+        .view-gestione {
+            display: flex;
+            height: 100vh;
+        }
+
+        .view-gestione.hidden {
+            display: none;
+        }
+
+        .sidebar {
+            width: 288px;
+            border-right: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            transition: color 0.15s;
+        }
+
+        .back-button:hover {
+            color: #2563eb;
+        }
+
+        .api-info {
+            padding: 0.75rem;
+            background: #eff6ff;
+            border-radius: 0.5rem;
+            border: 1px solid #bfdbfe;
+        }
+
+        .api-info h2 {
+            font-size: 0.875rem;
+            font-weight: bold;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .api-info p {
+            font-size: 0.75rem;
+            color: #0369a1;
+            margin-top: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-section {
+            padding: 1rem;
+        }
+
+        .nav-section h3 {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .nav-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: transparent;
+            color: #475569;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        .nav-button.active {
+            background: #2563eb;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            color: #cbd5e1;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 0.5rem 0;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .main-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .main-header h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .main-header p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .doping-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .doping-label {
+            font-size: 0.625rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .doping-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            background: white;
+        }
+
+        .content-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            color: #cbd5e1;
+            text-align: center;
+        }
+
+        .content-placeholder p {
+            max-width: 280px;
+            color: #1e293b;
+        }
+
+        /* FEEDBACK */
+        .feedback {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: center;
+            z-index: 50;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-message {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+
+        .feedback-message.success {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .feedback-message.error {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #7f1d1d;
+        }
+
+        .feedback-message.confirm {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1e40af;
+        }
+
+        .feedback-text {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .feedback-button {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .feedback-button.cancel {
+            background: white;
+            border: 1px solid #93c5fd;
+            color: #1e40af;
+        }
+
+        .feedback-button.cancel:hover {
+            background: #f0f9ff;
+        }
+
+        .feedback-button.confirm {
+            background: #2563eb;
+            color: white;
+        }
+
+        .feedback-button.confirm:hover {
+            background: #1d4ed8;
+        }
+
+        .feedback-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        /* LOADING */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e0e7ff;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #64748b;
+            font-weight: 500;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* TEST FORM */
+        .test-form-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 1rem;
+        }
+
+        .test-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .test-card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-required {
+            color: #ef4444;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+        }
+
+        .form-input:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px #bfdbfe;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.15s;
+            margin-top: 1rem;
+        }
+
+        .submit-button:hover {
+            background: #2563eb;
+        }
+
+        .submit-button:active {
+            transform: scale(0.95);
+        }
+
+        .submit-button.purple {
+            background: #a855f7;
+        }
+
+        .submit-button.purple:hover {
+            background: #9333ea;
+        }
+
+        .result-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            animation: zoomIn 0.3s ease;
+            text-align: center;
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .result-label {
+            font-size: 0.625rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 2.25rem;
+            font-weight: bold;
+            color: #1e293b;
+            font-family: monospace;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            word-break: break-all;
+        }
+
+        /* SIMULATION */
+        .simulation-container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .simulation-icon {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid;
+            margin: 0 auto 1rem;
+            font-size: 2.5rem;
+        }
+
+        .simulation-icon.rpgle {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .simulation-icon.drogata {
+            background: #f3e8ff;
+            border-color: #e9d5ff;
+        }
+
+        .simulation-container h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .simulation-container p {
+            color: #64748b;
+            margin-bottom: 2rem;
+        }
+
+        .simulation-button {
+            padding: 1rem 3rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.15s;
+            margin-bottom: 1rem;
+        }
+
+        .simulation-button:hover {
+            transform: scale(1.05);
+        }
+
+        .simulation-button:active {
+            transform: scale(0.95);
+        }
+
+        .simulation-button.rpgle {
+            background: #3b82f6;
+        }
+
+        .simulation-button.rpgle:hover {
+            background: #2563eb;
+        }
+
+        .simulation-button.drogata {
+            background: #a855f7;
+        }
+
+        .simulation-button.drogata:hover {
+            background: #9333ea;
+        }
+
+        .attempts {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+
+        /* TRANSFER */
+        .transfer-container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .transfer-icon {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #e2e8f0;
+            margin: 0 auto 1rem;
+            background: #f8fafc;
+            font-size: 2.5rem;
+        }
+
+        .transfer-container h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .transfer-container p {
+            color: #64748b;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .view-gestione {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .main-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .doping-status {
+                align-items: flex-start;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- RICERCA VIEW -->
+    <div id="viewRicerca" class="view-ricerca">
+        <div class="ricerca-container">
+            <div class="ricerca-header">
+                <h1>💾 Ricerca API</h1>
+                <p>Seleziona una riga per gestire l'istanza (singolo click).</p>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="apiTable">
+                    <thead>
+                        <tr>
+                            <th>Codice</th>
+                            <th>Descrizione</th>
+                            <th>Drogata</th>
+                            <th>Doping</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apiTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- GESTIONE VIEW -->
+    <div id="viewGestione" class="view-gestione hidden">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <button class="back-button" onclick="app.switchView('RICERCA')">← Torna alla ricerca</button>
+                <div class="api-info">
+                    <h2 id="sidebarCode">A001</h2>
+                    <p id="sidebarDesc">Descrizione API</p>
+                </div>
+                <div class="da-drogare-section">
+                    <label class="da-drogare-label">Da drogare</label>
+                    <div class="da-drogare-toggle" id="daDrogareToggle">
+                        <button class="da-drogare-btn" data-value="" onclick="app.handleDaDrogareChange('')">—</button>
+                        <button class="da-drogare-btn" data-value="Si" onclick="app.handleDaDrogareChange('Si')">Sì</button>
+                        <button class="da-drogare-btn" data-value="No" onclick="app.handleDaDrogareChange('No')">No</button>
+                    </div>
+                </div>
+            </div>
+
+            <nav style="flex: 1; overflow-y: auto;">
+                <div class="nav-section">
+                    <h3>API RPGLE</h3>
+                    <div class="nav-buttons">
+                        <button class="nav-button" onclick="app.handleAction('RPGLE', 'TEST')">🧪 Test</button>
+                        <button class="nav-button" onclick="app.handleAction('RPGLE', 'SIMULAZIONE')">▶️ Simulazione</button>
+                    </div>
+                </div>
+
+                <div class="nav-divider"></div>
+
+                <div class="nav-section">
+                    <h3>API Drogata</h3>
+                    <div class="nav-buttons">
+                        <button class="nav-button" id="btnTrasferisci" onclick="app.handleAction('DROGATA', 'TRASFERISCI')">⇄ Trasferisci</button>
+                        <button class="nav-button" id="btnRilascia" onclick="app.handleAction('DROGATA', 'RILASCIA')">🚀 Rilascia</button>
+                        <button class="nav-button" id="btnRipristina" onclick="app.handleAction('DROGATA', 'RIPRISTINA')">🔄 Annulla rilascio</button>
+                        <button class="nav-button" id="btnTestDrogata" onclick="app.handleAction('DROGATA', 'TEST')">🧪 Test</button>
+                        <button class="nav-button" id="btnSimulazioneDrogata" onclick="app.handleAction('DROGATA', 'SIMULAZIONE')">▶️ Simulazione</button>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="main-header">
+                <div>
+                    <h1>Gestione API</h1>
+                    <p>Configura ed esegui il programma.</p>
+                </div>
+                <div class="doping-status">
+                    <span class="doping-label">Doping</span>
+                    <span class="doping-value" id="dopingStatus">Standard</span>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- FEEDBACK MESSAGE -->
+                <div id="feedback" class="feedback hidden">
+                    <div class="feedback-message">
+                        <span id="feedbackIcon">ℹ️</span>
+                        <div class="feedback-text" id="feedbackText">Messaggio</div>
+                        <div id="feedbackActions" class="feedback-buttons"></div>
+                    </div>
+                </div>
+
+                <!-- LOADING -->
+                <div id="loadingView" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p class="loading-text">Elaborazione in corso...</p>
+                </div>
+
+                <!-- PLACEHOLDER -->
+                <div id="placeholderView" class="content-placeholder">
+                    <span style="font-size: 4rem; opacity: 0.1; margin-bottom: 1rem;">⚙️</span>
+                    <p>Seleziona un'azione per testare il ritorno del programma.</p>
+                </div>
+
+                <!-- TEST FORM -->
+                <div id="testView" class="test-form-container hidden">
+                    <div class="test-card">
+                        <h3>
+                            <span id="testIcon">🧪</span>
+                            Esecuzione <span id="testSource">RPGLE</span>
+                        </h3>
+                        <form id="testForm" onsubmit="app.handleTestSubmit(event)">
+                            <div class="form-group">
+                                <label class="form-label">Parametro A <span class="form-required">*</span></label>
+                                <input type="text" id="paramA" class="form-input" placeholder="Input 1..." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Parametro B <span class="form-required">*</span></label>
+                                <input type="text" id="paramB" class="form-input" placeholder="Input 2..." required>
+                            </div>
+                            <button type="submit" class="submit-button" id="submitBtn">Esegui Programma</button>
+                        </form>
+                    </div>
+
+                    <div id="resultView" class="result-card hidden">
+                        <div class="result-label">Risultato Elaborazione</div>
+                        <div class="result-value" id="resultValue">RISULTATO</div>
+                    </div>
+                </div>
+
+                <!-- SIMULATION -->
+                <div id="simulationView" class="simulation-container hidden">
+                    <div class="simulation-icon" id="simIcon">▶️</div>
+                    <h3 id="simTitle">Simulazione RPGLE</h3>
+                    <p>Esegui una simulazione per verificare la stabilità del programma.</p>
+                    <button class="simulation-button" id="simBtn" onclick="app.executeSimulation()">Avvia Simulazione</button>
+                    <div class="attempts" id="attempts"></div>
+                </div>
+
+                <!-- TRANSFER -->
+                <div id="transferView" class="transfer-container hidden">
+                    <div class="transfer-icon">⇄</div>
+                    <h3>Trasferimento Risorse</h3>
+                    <p>Pronto per il trasferimento nel mex smeuperp.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_STATES = {
+            DA_FARE: 'Da realizzare',
+            IN_CORSO: 'In corso',
+            FATTO: 'Completato',
+            DA_TESTARE: 'Da testare',
+            IN_ERRORE: 'In errore'
+        };
+
+        const INITIAL_MOCK_DATA = [
+            { id: 1, codice: 'A001', descrizione: 'Recupero Anagrafica Clienti Corporate', daDrogare: 'Si', statoDoping: API_STATES.DA_FARE },
+            { id: 2, codice: 'B122', descrizione: 'Verifica Saldo Disponibile Realtime', daDrogare: '', statoDoping: null },
+            { id: 3, codice: 'C789', descrizione: 'Allineamento Listini Fornitori UE', daDrogare: 'Si', statoDoping: API_STATES.DA_TESTARE },
+            { id: 4, codice: 'D456', descrizione: 'Calcolo Rischio Creditizio Batch', daDrogare: 'Si', statoDoping: API_STATES.IN_CORSO },
+            { id: 5, codice: 'E010', descrizione: 'Notifica Push App Mobile', daDrogare: '', statoDoping: null },
+            { id: 6, codice: 'F332', descrizione: 'Generazione Estratto Conto PDF', daDrogare: 'Si', statoDoping: API_STATES.IN_ERRORE },
+            { id: 7, codice: 'G991', descrizione: 'Validazione IBAN Internazionale', daDrogare: 'No', statoDoping: null },
+            { id: 8, codice: 'H221', descrizione: 'Logging Eventi Sicurezza SIEM', daDrogare: '', statoDoping: null },
+            { id: 9, codice: 'I554', descrizione: 'Sincronizzazione Magazzino Hub', daDrogare: 'Si', statoDoping: API_STATES.DA_FARE },
+            { id: 10, codice: 'L009', descrizione: 'Integrazione Gateway Pagamenti', daDrogare: 'Si', statoDoping: API_STATES.DA_FARE },
+        ];
+
+        const app = {
+            apis: [...INITIAL_MOCK_DATA],
+            view: 'RICERCA',
+            selectedApi: null,
+            activeAction: null,
+            actionSource: null,
+            isLoading: false,
+            feedback: null,
+            simulationAttempts: 0,
+            testForm: { paramA: '', paramB: '' },
+            testResult: null,
+            feedbackTimeout: null,
+
+            init() {
+                this.renderTable();
+            },
+
+            renderTable() {
+                const tbody = document.getElementById('apiTableBody');
+                tbody.innerHTML = this.apis.map(api => `
+                    <tr onclick="app.handleRowClick(${api.id})">
+                        <td class="codice">${api.codice}</td>
+                        <td>${api.descrizione}</td>
+                        <td>
+                            <span class="drogata-badge ${api.daDrogare === 'Si' ? 'si' : api.daDrogare === 'No' ? 'no' : 'indeciso'}">
+                                ${api.daDrogare || '—'}
+                            </span>
+                        </td>
+                        <td>
+                            ${api.daDrogare === 'Si' ? `
+                                <span class="stato-badge ${this.getStateClass(api.statoDoping)}">
+                                    ${this.getStateIcon(api.statoDoping)} ${api.statoDoping}
+                                </span>
+                            ` : '<span class="non-applicabile">Non applicabile</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            getStateClass(stato) {
+                if (stato === API_STATES.DA_FARE) return 'da-fare';
+                if (stato === API_STATES.IN_CORSO) return 'in-corso';
+                if (stato === API_STATES.FATTO) return 'fatto';
+                if (stato === API_STATES.DA_TESTARE) return 'rilasciato';
+                if (stato === API_STATES.IN_ERRORE) return 'in-errore';
+                return '';
+            },
+
+            getStateIcon(stato) {
+                if (stato === API_STATES.DA_FARE) return '⏰';
+                if (stato === API_STATES.IN_CORSO) return '⚙️';
+                if (stato === API_STATES.FATTO) return '✅';
+                if (stato === API_STATES.DA_TESTARE) return '🧪';
+                if (stato === API_STATES.IN_ERRORE) return '❌';
+                return '';
+            },
+
+            handleRowClick(apiId) {
+                this.selectedApi = this.apis.find(a => a.id === apiId);
+                this.switchView('GESTIONE');
+                this.resetState();
+                this.updateUI();
+            },
+
+            switchView(newView) {
+                this.view = newView;
+                document.getElementById('viewRicerca').classList.toggle('hidden', newView !== 'RICERCA');
+                document.getElementById('viewGestione').classList.toggle('hidden', newView !== 'GESTIONE');
+            },
+
+            resetState() {
+                this.activeAction = null;
+                this.actionSource = null;
+                this.feedback = null;
+                this.testForm = { paramA: '', paramB: '' };
+                this.testResult = null;
+                this.simulationAttempts = 0;
+                this.hideFeedback();
+            },
+
+            updateUI() {
+                if (!this.selectedApi) return;
+
+                document.getElementById('sidebarCode').textContent = this.selectedApi.codice;
+                document.getElementById('sidebarDesc').textContent = this.selectedApi.descrizione;
+
+                const dopingStatus = this.selectedApi.daDrogare === 'Si'
+                    ? this.selectedApi.statoDoping
+                    : 'Standard';
+                document.getElementById('dopingStatus').textContent = dopingStatus;
+                document.getElementById('dopingStatus').style.color = dopingStatus === 'Standard' ? '#94a3b8' : '#2563eb';
+
+                this.renderDaDrogareToggle();
+
+                // Update button states
+                const isDrogataActionsEnabled = this.selectedApi.daDrogare === 'Si' &&
+                    [API_STATES.FATTO, API_STATES.DA_TESTARE, API_STATES.IN_ERRORE].includes(this.selectedApi.statoDoping);
+
+                document.getElementById('btnTrasferisci').disabled = this.selectedApi.daDrogare !== 'Si' || this.selectedApi.statoDoping === API_STATES.IN_CORSO;
+                document.getElementById('btnRilascia').disabled = this.selectedApi.daDrogare !== 'Si' || this.selectedApi.statoDoping !== API_STATES.IN_CORSO;
+                const ripristinoAllowed = this.selectedApi.daDrogare === 'Si' && [API_STATES.FATTO, API_STATES.DA_TESTARE, API_STATES.IN_ERRORE].includes(this.selectedApi.statoDoping);
+                document.getElementById('btnRipristina').disabled = !ripristinoAllowed;
+                document.getElementById('btnTestDrogata').disabled = !isDrogataActionsEnabled;
+                document.getElementById('btnSimulazioneDrogata').disabled = !isDrogataActionsEnabled;
+
+                this.renderContent();
+            },
+
+            handleAction(source, action) {
+                this.feedback = null;
+                this.testResult = null;
+
+                // Check if TEST/SIMULAZIONE available for DROGATA
+                if (source === 'DROGATA' && (action === 'TEST' || action === 'SIMULAZIONE')) {
+                    const allowedStates = [API_STATES.FATTO, API_STATES.DA_TESTARE, API_STATES.IN_ERRORE];
+                    if (!allowedStates.includes(this.selectedApi.statoDoping)) {
+                        this.showFeedback('error', 'Azione disponibile solo negli stati: Fatto, Rilasciato o In errore.');
+                        return;
+                    }
+                }
+
+                // Handle TRASFERISCI
+                if (action === 'TRASFERISCI') {
+                    if (this.selectedApi.statoDoping === API_STATES.IN_CORSO) {
+                        this.showFeedback('error', 'Il trasferimento non è possibile quando lo stato è In corso.');
+                        return;
+                    }
+                    this.showFeedback('confirm', 'Confermi il trasferimento di tutte le risorse associate alla API nel mex smeuperp?');
+                    this.actionSource = source;
+                    this.activeAction = action;
+                    return;
+                }
+
+                // Handle RILASCIA
+                if (action === 'RILASCIA') {
+                    if (this.selectedApi.statoDoping !== API_STATES.IN_CORSO) {
+                        this.showFeedback('error', 'Il rilascio è possibile solo quando lo stato è In corso.');
+                        return;
+                    }
+                    this.executeRelease();
+                    return;
+                }
+
+                // Handle ANNULLA RILASCIO
+                if (action === 'RIPRISTINA') {
+                    const allowedStates = [API_STATES.FATTO, API_STATES.DA_TESTARE, API_STATES.IN_ERRORE];
+                    if (!allowedStates.includes(this.selectedApi.statoDoping)) {
+                        this.showFeedback('error', "L'annullamento del rilascio è possibile negli stati: Completato, Da testare o In errore.");
+                        return;
+                    }
+                    this.executeRipristino();
+                    return;
+                }
+
+                this.actionSource = source;
+                this.activeAction = action;
+                this.renderContent();
+            },
+
+            showFeedback(type, message) {
+                this.feedback = { type, message };
+                this.renderFeedback();
+
+                if (type !== 'confirm') {
+                    clearTimeout(this.feedbackTimeout);
+                    this.feedbackTimeout = setTimeout(() => {
+                        this.hideFeedback();
+                    }, 3000);
+                }
+            },
+
+            hideFeedback() {
+                this.feedback = null;
+                document.getElementById('feedback').classList.add('hidden');
+            },
+
+            renderFeedback() {
+                if (!this.feedback) {
+                    this.hideFeedback();
+                    return;
+                }
+
+                const fb = document.getElementById('feedback');
+                const msg = fb.querySelector('.feedback-message');
+                const icon = document.getElementById('feedbackIcon');
+                const text = document.getElementById('feedbackText');
+                const actions = document.getElementById('feedbackActions');
+
+                msg.className = 'feedback-message ' + this.feedback.type;
+                text.textContent = this.feedback.message;
+
+                if (this.feedback.type === 'error') {
+                    icon.textContent = '❌';
+                } else if (this.feedback.type === 'success') {
+                    icon.textContent = '✅';
+                } else if (this.feedback.type === 'confirm') {
+                    icon.textContent = 'ℹ️';
+                }
+
+                if (this.feedback.type === 'confirm') {
+                    actions.innerHTML = `
+                        <button class="feedback-button cancel" onclick="app.hideFeedback()">Annulla</button>
+                        <button class="feedback-button confirm" onclick="app.executeTransfer()">Conferma</button>
+                    `;
+                } else {
+                    actions.innerHTML = `<button class="feedback-close" onclick="app.hideFeedback()">×</button>`;
+                }
+
+                fb.classList.remove('hidden');
+            },
+
+            renderContent() {
+                document.getElementById('loadingView').classList.add('hidden');
+                document.getElementById('placeholderView').classList.add('hidden');
+                document.getElementById('testView').classList.add('hidden');
+                document.getElementById('simulationView').classList.add('hidden');
+                document.getElementById('transferView').classList.add('hidden');
+
+                if (this.isLoading) {
+                    document.getElementById('loadingView').classList.remove('hidden');
+                } else if (!this.activeAction) {
+                    document.getElementById('placeholderView').classList.remove('hidden');
+                } else if (this.activeAction === 'TEST') {
+                    this.renderTestView();
+                } else if (this.activeAction === 'SIMULAZIONE') {
+                    this.renderSimulationView();
+                } else if (this.activeAction === 'TRASFERISCI') {
+                    document.getElementById('transferView').classList.remove('hidden');
+                }
+            },
+
+            renderTestView() {
+                document.getElementById('testView').classList.remove('hidden');
+                document.getElementById('testIcon').textContent = this.actionSource === 'RPGLE' ? '🧪' : '🧪';
+                document.getElementById('testSource').textContent = this.actionSource;
+                document.getElementById('submitBtn').className = `submit-button ${this.actionSource === 'RPGLE' ? '' : 'purple'}`;
+
+                if (this.testResult) {
+                    document.getElementById('resultView').classList.remove('hidden');
+                    document.getElementById('resultValue').textContent = this.testResult;
+                } else {
+                    document.getElementById('resultView').classList.add('hidden');
+                }
+            },
+
+            renderSimulationView() {
+                document.getElementById('simulationView').classList.remove('hidden');
+                const isRpgle = this.actionSource === 'RPGLE';
+                document.getElementById('simIcon').className = `simulation-icon ${isRpgle ? 'rpgle' : 'drogata'}`;
+                document.getElementById('simTitle').textContent = `Simulazione ${isRpgle ? 'RPGLE' : 'Drogata'}`;
+                document.getElementById('simBtn').className = `simulation-button ${isRpgle ? 'rpgle' : 'drogata'}`;
+                if (this.simulationAttempts > 0) {
+                    document.getElementById('attempts').textContent = `Tentativi eseguiti: ${this.simulationAttempts}`;
+                } else {
+                    document.getElementById('attempts').textContent = '';
+                }
+            },
+
+            handleTestSubmit(e) {
+                e.preventDefault();
+                this.isLoading = true;
+                this.testResult = null;
+                this.feedback = null;
+                this.renderContent();
+
+                setTimeout(() => {
+                    this.isLoading = false;
+                    const paramA = document.getElementById('paramA').value;
+                    const paramB = document.getElementById('paramB').value;
+                    this.testResult = this.generateDeterministicResult(paramA, paramB);
+                    this.showFeedback('success', 'Esecuzione programma completata.');
+                    this.renderContent();
+                }, 800);
+            },
+
+            generateDeterministicResult(a, b) {
+                const combined = (a + b).toLowerCase();
+                const hash = combined.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const possibleResults = ["ELABORAZIONE_OK", (hash * 7).toString(), "VALIDO", "STATUS_0", (1000 + hash).toString(), "TRUE", "UTENTE_ATTIVO", "ERR_VAL_99"];
+                return possibleResults[hash % possibleResults.length];
+            },
+
+            executeSimulation() {
+                this.isLoading = true;
+                this.feedback = null;
+                this.renderContent();
+
+                setTimeout(() => {
+                    this.isLoading = false;
+                    const currentAttempt = this.simulationAttempts + 1;
+                    this.simulationAttempts = currentAttempt;
+                    const isSuccess = currentAttempt >= 2;
+                    const result = isSuccess ? 'OK' : 'KO';
+
+                    if (!isSuccess && this.actionSource === 'DROGATA') {
+                        this.updateApiState(this.selectedApi.id, API_STATES.IN_ERRORE);
+                        this.showFeedback('error', `Simulazione fallita (KO). Il programma è ora in stato: In errore.`);
+                    } else {
+                        const msg = `Simulazione terminata con esito: ${result} ${!isSuccess ? '(Tentativo 1/2)' : '(Tentativo completato)'}`;
+                        this.showFeedback(isSuccess ? 'success' : 'error', msg);
+                    }
+
+                    if (isSuccess && this.actionSource === 'DROGATA') {
+                        this.updateApiState(this.selectedApi.id, API_STATES.FATTO);
+                    }
+
+                    this.renderContent();
+                }, 2000);
+            },
+
+            executeTransfer() {
+                this.isLoading = true;
+                this.feedback = null;
+                this.renderContent();
+
+                setTimeout(() => {
+                    this.isLoading = false;
+                    this.showFeedback('success', "Tutti i sorgenti dell'API sono stati trasferiti con successo");
+                    this.updateApiState(this.selectedApi.id, API_STATES.IN_CORSO);
+                    this.activeAction = null;
+                    this.renderContent();
+                }, 2000);
+            },
+
+            executeRelease() {
+                this.isLoading = true;
+                this.feedback = null;
+                this.renderContent();
+
+                setTimeout(() => {
+                    this.isLoading = false;
+                    this.showFeedback('success', "Programma rilasciato con successo.");
+                    this.updateApiState(this.selectedApi.id, API_STATES.DA_TESTARE);
+                    this.activeAction = null;
+                    this.renderContent();
+                }, 1500);
+            },
+
+            executeRipristino() {
+                this.isLoading = true;
+                this.feedback = null;
+                this.renderContent();
+
+                setTimeout(() => {
+                    this.isLoading = false;
+                    this.showFeedback('success', "Annullamento rilascio eseguito con successo. Il doping è stato riportato a In corso.");
+                    this.updateApiState(this.selectedApi.id, API_STATES.IN_CORSO);
+                    this.activeAction = null;
+                    this.renderContent();
+                }, 1500);
+            },
+
+            handleDaDrogareChange(value) {
+                if (!this.selectedApi) return;
+                this.selectedApi.daDrogare = value;
+                const api = this.apis.find(a => a.id === this.selectedApi.id);
+                if (api) {
+                    api.daDrogare = value;
+                    if (value !== 'Si') {
+                        api.statoDoping = null;
+                        this.selectedApi.statoDoping = null;
+                    } else if (!api.statoDoping) {
+                        api.statoDoping = API_STATES.DA_FARE;
+                        this.selectedApi.statoDoping = API_STATES.DA_FARE;
+                    }
+                }
+                this.renderTable();
+                this.updateUI();
+            },
+
+            renderDaDrogareToggle() {
+                if (!this.selectedApi) return;
+                document.querySelectorAll('.da-drogare-btn').forEach(btn => {
+                    btn.classList.remove('active-indeciso', 'active-si', 'active-no');
+                    if (btn.dataset.value === this.selectedApi.daDrogare) {
+                        if (btn.dataset.value === 'Si') btn.classList.add('active-si');
+                        else if (btn.dataset.value === 'No') btn.classList.add('active-no');
+                        else btn.classList.add('active-indeciso');
+                    }
+                });
+            },
+
+            updateApiState(apiId, newState) {
+                const api = this.apis.find(a => a.id === apiId);
+                if (api) {
+                    api.statoDoping = newState;
+                    if (this.selectedApi.id === apiId) {
+                        this.selectedApi.statoDoping = newState;
+                    }
+                    this.renderTable();
+                    this.updateUI();
+                }
+            }
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
