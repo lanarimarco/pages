@@ -1111,9 +1111,9 @@
                 const isDrogataActionsEnabled = this.selectedApi.daDrogare === 'Si' &&
                     [API_STATES.FATTO, API_STATES.DA_TESTARE, API_STATES.IN_ERRORE].includes(this.selectedApi.statoDoping);
 
-                document.getElementById('btnTrasferisci').disabled = this.selectedApi.daDrogare !== 'Si' || this.selectedApi.statoDoping === API_STATES.IN_CORSO;
+                document.getElementById('btnTrasferisci').disabled = this.selectedApi.daDrogare !== 'Si' || ![API_STATES.DA_FARE, API_STATES.FATTO].includes(this.selectedApi.statoDoping);
                 document.getElementById('btnRilascia').disabled = this.selectedApi.daDrogare !== 'Si' || this.selectedApi.statoDoping !== API_STATES.IN_CORSO;
-                const ripristinoAllowed = this.selectedApi.daDrogare === 'Si' && [API_STATES.FATTO, API_STATES.DA_TESTARE, API_STATES.IN_ERRORE].includes(this.selectedApi.statoDoping);
+                const ripristinoAllowed = this.selectedApi.daDrogare === 'Si' && [API_STATES.DA_TESTARE, API_STATES.IN_ERRORE].includes(this.selectedApi.statoDoping);
                 document.getElementById('btnRipristina').disabled = !ripristinoAllowed;
                 document.getElementById('btnTestDrogata').disabled = !isDrogataActionsEnabled;
                 document.getElementById('btnSimulazioneDrogata').disabled = !isDrogataActionsEnabled;
@@ -1158,9 +1158,9 @@
 
                 // Handle ANNULLA RILASCIO
                 if (action === 'RIPRISTINA') {
-                    const allowedStates = [API_STATES.FATTO, API_STATES.DA_TESTARE, API_STATES.IN_ERRORE];
+                    const allowedStates = [API_STATES.DA_TESTARE, API_STATES.IN_ERRORE];
                     if (!allowedStates.includes(this.selectedApi.statoDoping)) {
-                        this.showFeedback('error', "L'annullamento del rilascio è possibile negli stati: Completato, Da testare o In errore.");
+                        this.showFeedback('error', "L'annullamento del rilascio è possibile negli stati: Da testare o In errore.");
                         return;
                     }
                     this.executeRipristino();

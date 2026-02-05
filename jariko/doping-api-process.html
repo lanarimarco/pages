@@ -569,19 +569,19 @@
                             <text x="650" y="278" text-anchor="end" font-size="11" font-weight="600" fill="#198754">SIM OK</text>
 
                             <!-- ===== ARCO INFERIORE: In Errore → In Corso ===== -->
-                            <!-- TRASFERISCI / ANNULLA RIL. -->
+                            <!-- ANNULLA RIL. -->
                             <path d="M 634 418 Q 440 505 348 242" stroke="#667eea" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
-                            <text x="500" y="452" text-anchor="middle" font-size="11" font-weight="600" fill="#667eea">TRASFERISCI / ANNULLA RIL.</text>
+                            <text x="500" y="452" text-anchor="middle" font-size="11" font-weight="600" fill="#667eea">ANNULLA RIL.</text>
 
                             <!-- ===== ARCHI SUPERIORI: ritorno a In Corso ===== -->
 
-                            <!-- Da testare → In Corso : TRASFERISCI / ANNULLA RIL. -->
+                            <!-- Da testare → In Corso : ANNULLA RIL. -->
                             <path d="M 525 156 Q 444 90 358 156" stroke="#667eea" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
-                            <text x="410" y="122" text-anchor="middle" font-size="10" font-weight="600" fill="#667eea">TRASFERISCI / ANNULLA RIL.</text>
+                            <text x="410" y="122" text-anchor="middle" font-size="10" font-weight="600" fill="#667eea">ANNULLA RIL.</text>
 
-                            <!-- Completato → In Corso : TRASFERISCI / ANNULLA RIL. -->
+                            <!-- Completato → In Corso : TRASFERISCI -->
                             <path d="M 762 156 Q 548 18 345 156" stroke="#667eea" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
-                            <text x="548" y="60" text-anchor="middle" font-size="10" font-weight="600" fill="#667eea">TRASFERISCI / ANNULLA RIL.</text>
+                            <text x="548" y="60" text-anchor="middle" font-size="10" font-weight="600" fill="#667eea">TRASFERISCI</text>
 
                             <!-- ===== SELF-LOOP: In Errore → In Errore ===== -->
                             <!-- SIM KO -->
@@ -683,39 +683,13 @@
                             <div class="transition-action">
                                 <strong>Azione:</strong> ANNULLA RILASCIO<br/>
                                 <span class="source">📍 API Drogata</span><br/>
-                                <strong>Descrizione:</strong> Dopo la correzione del codice, l'annullamento del rilascio riporta l'API in In corso per un nuovo rilascio
+                                <strong>Descrizione:</strong> Si annulla il rilascio per impedire test su una API in errore, riportandola in sviluppo per correzioni
                             </div>
                         </div>
 
                         <div class="transition-item" data-transition="completato-to-in-corso-trasferisci">
                             <div class="transition-from-to">
                                 <span class="state-badge completato">✅ Completato</span>
-                                <span class="transition-arrow">→</span>
-                                <span class="state-badge in-corso">⚙️ In Corso</span>
-                            </div>
-                            <div class="transition-action">
-                                <strong>Azione:</strong> TRASFERISCI<br/>
-                                <span class="source">📍 API Drogata</span><br/>
-                                <strong>Descrizione:</strong> Trasferisce le risorse per un nuovo ciclo di sviluppo
-                            </div>
-                        </div>
-
-                        <div class="transition-item" data-transition="completato-to-in-corso-annulla">
-                            <div class="transition-from-to">
-                                <span class="state-badge completato">✅ Completato</span>
-                                <span class="transition-arrow">→</span>
-                                <span class="state-badge in-corso">⚙️ In Corso</span>
-                            </div>
-                            <div class="transition-action">
-                                <strong>Azione:</strong> ANNULLA RILASCIO<br/>
-                                <span class="source">📍 API Drogata</span><br/>
-                                <strong>Descrizione:</strong> Annulla il rilascio e riporta l'API in sviluppo
-                            </div>
-                        </div>
-
-                        <div class="transition-item" data-transition="da-testare-to-in-corso-trasferisci">
-                            <div class="transition-from-to">
-                                <span class="state-badge da-testare">🧪 Da testare</span>
                                 <span class="transition-arrow">→</span>
                                 <span class="state-badge in-corso">⚙️ In Corso</span>
                             </div>
@@ -735,7 +709,7 @@
                             <div class="transition-action">
                                 <strong>Azione:</strong> ANNULLA RILASCIO<br/>
                                 <span class="source">📍 API Drogata</span><br/>
-                                <strong>Descrizione:</strong> Annulla il rilascio e riporta l'API in sviluppo per correzioni
+                                <strong>Descrizione:</strong> Annulla il rilascio e riporta l'API in sviluppo per correzioni o modifica dei requisiti
                             </div>
                         </div>
 
@@ -760,68 +734,26 @@
                         <div class="state-detail" id="detail-da-realizzare">
                             <h4>⏰ Stato: Da realizzare</h4>
                             <p>Stato iniziale del ciclo di vita dell'API drogata.</p>
-                            <p><strong>Caratteristiche:</strong></p>
-                            <ul>
-                                <li>È lo stato iniziale per tutte le API marcate come "Da drogare"</li>
-                                <li>Il doping dell'API non è ancora iniziato</li>
-                                <li>Non sono disponibili azioni TEST o SIMULAZIONE</li>
-                                <li>È possibile solo il trasferimento delle risorse</li>
-                            </ul>
                         </div>
 
                         <div class="state-detail" id="detail-in-corso">
                             <h4>⚙️ Stato: In Corso</h4>
                             <p>L'API è in fase di sviluppo dopo il trasferimento delle risorse.</p>
-                            <p><strong>Caratteristiche:</strong></p>
-                            <ul>
-                                <li>Raggiunto dopo l'azione TRASFERISCI (da Da realizzare, Completato o Da testare) o dopo ANNULLA RILASCIO (da In Errore, Completato o Da testare)</li>
-                                <li>Quando lo sviluppatore ha terminato lo sviluppo effettua la merge della branch di sviluppo nella develop</li>
-                                <li>È disponibile l'azione RILASCIA per il rilascio</li>
-                                <li><strong>TRASFERISCI NON è disponibile in questo stato</strong></li>
-                                <li><strong>TEST e SIMULAZIONE NON sono disponibili</strong> per l'API Drogata in questo stato</li>
-                                <li>TEST è disponibile solo per RPGLE</li>
-                            </ul>
                         </div>
 
                         <div class="state-detail" id="detail-completato">
                             <h4>✅ Stato: Completato</h4>
                             <p>L'API ha completato con successo la simulazione.</p>
-                            <p><strong>Caratteristiche:</strong></p>
-                            <ul>
-                                <li>Raggiunto dopo una SIMULAZIONE riuscita (OK)</li>
-                                <li>L'API è funzionante e stabile</li>
-                                <li>Sono disponibili TEST e SIMULAZIONE</li>
-                                <li>Sono disponibili TRASFERISCI e ANNULLA RILASCIO per un nuovo ciclo</li>
-                                <li>Una simulazione fallita lo riporta a In errore</li>
-                            </ul>
                         </div>
 
                         <div class="state-detail" id="detail-da-testare">
                             <h4>🧪 Stato: Da testare</h4>
                             <p>L'API è stata rilasciata (branch rilasciata nella develop) e attende il risultato della simulazione.</p>
-                            <p><strong>Caratteristiche:</strong></p>
-                            <ul>
-                                <li>Raggiunto dopo l'azione RILASCIA</li>
-                                <li>Attende il risultato della simulazione per proseguire</li>
-                                <li>Sono disponibili TEST e SIMULAZIONE</li>
-                                <li>Sono disponibili TRASFERISCI e ANNULLA RILASCIO per ricominciare lo sviluppo</li>
-                                <li>Una simulazione riuscita lo porta a Completato</li>
-                                <li>Una simulazione fallita lo porta a In errore</li>
-                            </ul>
                         </div>
 
                         <div class="state-detail" id="detail-in-errore">
                             <h4>❌ Stato: In Errore</h4>
                             <p>L'API ha riscontrato un errore durante la simulazione.</p>
-                            <p><strong>Caratteristiche:</strong></p>
-                            <ul>
-                                <li>Raggiunto quando una SIMULAZIONE fallisce (KO)</li>
-                                <li>Sono disponibili TEST e SIMULAZIONE per debug</li>
-                                <li>Una simulazione riuscita lo porta a Completato</li>
-                                <li>Una simulazione fallita lo mantiene in errore</li>
-                                <li>L'azione ANNULLA RILASCIO lo riporta a In corso per un nuovo rilascio</li>
-                                <li>Permette di eseguire nuovi tentativi di simulazione</li>
-                            </ul>
                         </div>
                     </div>
                 </div>
