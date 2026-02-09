@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doping /API: Stato dell'Arte 2026 al 10.02.2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* CONFIGURAZIONE DI BASE - TONO NEUTRO E PROFESSIONALE */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f4f7f9;
+            display: grid;
+            gap: 40px;
+            grid-template-columns: 1fr;
+            place-items: center;
+            padding: 40px 0;
+            font-family: 'Inter', sans-serif;
+            color: #2d3748;
+        }
+
+        .slide-container {
+            width: 1280px;
+            height: 720px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 60px 80px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* TIPOGRAFIA */
+        h1, h2, h3 {
+            font-weight: 700;
+            margin: 0;
+            color: #1a202c;
+        }
+
+        h1 { font-size: 56px; line-height: 1.1; margin-bottom: 24px; }
+        .slide-title { 
+            font-size: 32px; 
+            margin-bottom: 32px; 
+            color: #2b6cb0; 
+            text-align: left; 
+            width: 100%; 
+            border-bottom: 2px solid #e2e8f0; 
+            padding-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        h3 { font-size: 22px; margin-bottom: 12px; color: #2d3748; }
+        p, li { font-size: 18px; line-height: 1.5; color: #4a5568; }
+        strong { color: #2d3748; font-weight: 600; }
+
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        /* LINKS */
+        a { color: #2b6cb0; text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+        a:hover { text-decoration: underline; }
+
+        /* LAYOUTS */
+        .title-layout { text-align: left; margin-top: 100px; }
+        .title-layout p { font-size: 24px; color: #718096; margin-top: 16px; font-family: 'JetBrains Mono', monospace; }
+
+        .tiled-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; }
+        .tile { 
+            background: #f8fafc; 
+            padding: 24px; 
+            border-radius: 4px; 
+            border-left: 4px solid #2b6cb0;
+        }
+        .tile .icon { font-size: 28px; color: #4a5568; margin-bottom: 12px; }
+
+        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; width: 100%; }
+        
+        /* LISTS */
+        .link-list { list-style: none; margin-top: 8px; }
+        .link-list li { margin-bottom: 10px; display: flex; flex-direction: column; border-bottom: 1px solid #edf2f7; padding-bottom: 8px; }
+        .link-list span { font-size: 14px; font-weight: 600; color: #718096; text-transform: uppercase; }
+
+        /* BOX NOTA */
+        .note-box {
+            margin-top: 32px;
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            padding: 20px;
+            border-radius: 4px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .note-box i { color: #3182ce; font-size: 24px; margin-top: 4px; }
+
+        /* TIMELINE */
+        .timeline-layout { display: flex; justify-content: space-between; position: relative; margin-top: 40px; }
+        .timeline-layout::before { content: ''; position: absolute; top: 30px; left: 0; width: 100%; height: 2px; background: #e2e8f0; z-index: 0; }
+        .timeline-item { position: relative; z-index: 1; width: 30%; text-align: left; padding-top: 60px; }
+        .timeline-marker { position: absolute; top: 22px; left: 0; width: 18px; height: 18px; background: #2b6cb0; border-radius: 50%; }
+
+        /* BULLET POINTS */
+        .bullet-list { list-style: none; }
+        .bullet-list li { margin-bottom: 20px; display: flex; align-items: flex-start; gap: 16px; font-size: 18px; }
+        .bullet-list i { color: #718096; font-size: 20px; margin-top: 6px; }
+
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Titolo -->
+<div class="slide-container" id="slide1">
+    <div class="title-layout">
+        <p>RELAZIONE TECNICA</p>
+        <h1>Doping /API: Stato dell'Arte 2026<br>al 10.02.2026</h1>
+        <p>Revisione aggiornata</p>
+    </div>
+</div>
+
+<!-- Slide 2: Riepilogo Interventi -->
+<div class="slide-container" id="slide2">
+    <h2 class="slide-title">Sintesi degli Interventi</h2>
+    <div class="content-area">
+        <div class="tiled-content">
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-database"></i></div>
+                <h3>Gestione Parametri DS</h3>
+                <p>Adeguamento prompt per input/output di tipo Data Set (DS).</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-gear"></i></div>
+                <h3>Test KokosProgram</h3>
+                <p>Generazione automatica di test di integrazione da file di simulazione.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-terminal"></i></div>
+                <h3>GitHub Actions</h3>
+                <p>Revisione unit-test.yml per esecuzione test on-demand.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-clipboard-check"></i></div>
+                <h3>Validazione T02</h3>
+                <p>Completamento delle attività di doping per l'API target T02.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: Dettaglio DS -->
+<div class="slide-container" id="slide3">
+    <h2 class="slide-title">Adeguamento Prompt: Strutture DS</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Supporto Data Set (DS)</h3>
+                <p>È stato finalizzato l'adeguamento del prompt degli agenti per gestire correttamente le API che accettano parametri di input e output complessi (DS).</p>
+                <p style="margin-top:24px;">L'analisi dello storico evidenzia che su <strong>30 /API drogate</strong> nell'ultimo periodo, nessuna prevedeva l'utilizzo di strutture DS; l'attuale aggiornamento colma questa lacuna tecnica.</p>
+            </div>
+            <div style="width: 100%; height: 350px; border-radius: 4px; overflow: hidden; border: 1px solid #cbd5e0;">
+                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1000&auto=format&fit=crop" alt="Rappresentazione astratta di strutture dati" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: KokosProgram -->
+<div class="slide-container" id="slide4">
+    <h2 class="slide-title">Automazione KokosProgram</h2>
+    <div class="content-area">
+        <h3>Generazione da Simulazione</h3>
+        <p>Il prompt è stato istruito per trasformare i file di simulazione in test di integrazione pronti per l'ambiente <strong>KokosProgram</strong>.</p>
+        <div class="timeline-layout">
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <strong>Analisi</strong>
+                <p>Lettura file di simulazione sorgente.</p>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <strong>Mapping</strong>
+                <p>Conversione parametri e DS nel formato Kokos.</p>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <strong>Output</strong>
+                <p>Creazione classe di test integrata.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: CI/CD Strategy -->
+<div class="slide-container" id="slide5">
+    <h2 class="slide-title">Modifiche GitHub Action</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>unit-test.yml</h3>
+                <p>La configurazione è stata aggiornata per consentire l'attivazione manuale delle simulazioni e dei test tramite <code>workflow_dispatch</code>.</p>
+                <ul class="bullet-list" style="margin-top:24px;">
+                    <li><i class="fa-solid fa-circle-info"></i> Isolamento dalle criticità infrastrutturali dei micro executor.</li>
+                    <li><i class="fa-solid fa-circle-info"></i> Esecuzione centralizzata e tracciabile su GitHub.</li>
+                </ul>
+            </div>
+            <div class="tile">
+                <h3>Architettura dei Test</h3>
+                <p>L'inserimento dei test nel JAR di deploy è <strong>fortemente sconsigliato</strong> per preservare la pulizia dell'ambiente di runtime.</p>
+                <p style="margin-top:12px;">Delegare l'esecuzione a GitHub garantisce che le simulazioni non siano influenzate da variabili d'ambiente locali.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: Milestone T02 - Input -->
+<div class="slide-container" id="slide6">
+    <h2 class="slide-title">Dettaglio Milestone T02: Input</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Sorgenti RPGLE (Input)</h3>
+                <p>Riferimenti ai file originali analizzati per il processo di doping:</p>
+                <ul class="link-list">
+                    <li>
+                        <span>API da drogare (Copybook)</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/blob/develop/modernization-tool/source-rpgle/copybooks/%C2%E3T02.rpgle" target="_blank">£T02.rpgle</a>
+                    </li>
+                    <li>
+                        <span>File di Simulazione</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/blob/develop/modernization-tool/source-rpgle/simulations/T02.sch" target="_blank">T02.sch</a>
+                    </li>
+                    <li>
+                        <span>Programma RPG Chiamato</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/blob/develop/modernization-tool/source-rpgle/programs/MUT020.rpgle" target="_blank">MUT020.rpgle</a>
+                    </li>
+                    <li>
+                        <span>Definizione DS</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/blob/develop/modernization-tool/source-rpgle/copybooks/%C2%E3T02DS.rpgle" target="_blank">£T02DS.rpgle</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="tile">
+                <h3>Obiettivo della Modernizzazione</h3>
+                <p>Trasferimento completo della logica di business dell'unità T02 nell'ecosistema Java, mantenendo la compatibilità con le definizioni Data Structure originali.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: Milestone T02 - Output -->
+<div class="slide-container" id="slide7">
+    <h2 class="slide-title">Dettaglio Milestone T02: Output</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Artefatti Generati (Output)</h3>
+                <ul class="link-list">
+                    <li>
+                        <span>Documentazione Agenti</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/tree/develop/src/main/resources/com/smeup/kokos/copy/t02" target="_blank">Resources/t02</a>
+                    </li>
+                    <li>
+                        <span>Logica di Business Java</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/tree/develop/src/main/java/com/smeup/kokos/copy/t02" target="_blank">Java/t02/Service</a>
+                    </li>
+                    <li>
+                        <span>KokosProgram</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/blob/develop/src/main/java/com/smeup/kokos/program/MUT020.java" target="_blank">MUT020.java</a>
+                    </li>
+                    <li>
+                        <span>Test da Simulazione</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/blob/develop/src/test/java/com/smeup/kokos/program/MUT020Test.java" target="_blank">MUT020Test.java</a>
+                    </li>
+                    <li>
+                        <span>Test Business Logic</span>
+                        <a href="https://github.com/smeup/kokos-me-rpgle-smeuperp/blob/develop/src/test/java/com/smeup/kokos/copy/t02/T02ServiceTest.java" target="_blank">T02ServiceTest.java</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <div class="note-box">
+                    <i class="fa-solid fa-vial-circle-check"></i>
+                    <div>
+                        <strong>Strategia di Test (Doppio Controllo)</strong>
+                        <p style="font-size: 16px; margin-top:8px;">
+                            Abbiamo adottato due tipologie di test per massimizzare la stabilità:
+                            <br><br>
+                            1. <strong>Test da Simulazione:</strong> Creato fedelmente dal file <code>.sch</code> per la parità con il legacy.
+                            <br>
+                            2. <strong>Test Business Logic:</strong> Unit test estesi per verificare casi limite e logiche atomiche.
+                            <br><br>
+                            Questo approccio permette di individuare istantaneamente eventuali <strong>casi contraddittori</strong> tra specifica e implementazione.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: Fine Report -->
+<div class="slide-container" id="slide8" style="justify-content: center; text-align: center;">
+    <h2 style="font-size: 32px; color: #718096; margin-bottom: 8px;">FINE REPORT</h2>
+    <p>Documentazione Tecnica Doping / API</p>
+    <div style="margin-top: 48px; font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #a0aec0;">
+        Aggiornamento: 10 Febbraio 2026<br>
+        Riferimento: KOKOS-SIM-2026-V1.1
+    </div>
+</div>
+
+</body>
+</html>
