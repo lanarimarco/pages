@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modernization Tool Grand Prix - Super Mario Kart Style</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --mario-red: #E52521;
+    --mario-blue: #049CD8;
+    --mario-yellow: #FBD000;
+    --mario-green: #43B047;
+    --track-dark: #1a1a2e;
+    --track-mid: #16213e;
+    --track-light: #0f3460;
+    --coin-gold: #FFD700;
+    --blocker-red: #FF4444;
+    --success-green: #44FF44;
+    --neon-pink: #FF6EC7;
+    --neon-cyan: #00FFFF;
+    /* Dynamic scale: picks the smaller of vw/vh to fit both axes */
+    --s: min(1vw, 1vh);
+  }
+
+  body {
+    font-family: 'Press Start 2P', monospace;
+    background: var(--track-dark);
+    color: white;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    /* Base font scales with viewport — everything using em inherits */
+    font-size: clamp(14px, calc(var(--s) * 3.2), 36px);
+    cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>🏎️</text></svg>") 0 0, auto;
+  }
+
+  /* ============= STARFIELD BACKGROUND ============= */
+  .starfield {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 2s infinite alternate;
+  }
+  @keyframes twinkle {
+    0% { opacity: 0.2; }
+    100% { opacity: 1; }
+  }
+
+  /* ============= RAINBOW ROAD ============= */
+  .rainbow-road {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(90deg,
+      #ff0000, #ff7700, #ffff00, #00ff00, #0000ff, #8b00ff,
+      #ff0000, #ff7700, #ffff00, #00ff00, #0000ff, #8b00ff);
+    background-size: 200% 100%;
+    animation: rainbowMove 3s linear infinite;
+    z-index: 100;
+  }
+  @keyframes rainbowMove {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+  }
+
+  /* ============= SLIDE CONTAINER ============= */
+  .slide-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    z-index: 10;
+    overflow: hidden;
+  }
+  /* Invisible click-blocker so nav bar area is never covered */
+  .nav-guard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(var(--s) * 10);
+    z-index: 9998;
+    pointer-events: none;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--s) * 2) calc(var(--s) * 3) calc(var(--s) * 7) calc(var(--s) * 3);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+
+  /* ============= TITLE SCREEN ============= */
+  .title-logo {
+    font-size: clamp(1em, calc(var(--s) * 3.5), 2.5em);
+    text-align: center;
+    margin-bottom: calc(var(--s) * 1.5);
+    text-shadow:
+      3px 3px 0 var(--mario-red),
+      -2px -2px 0 var(--mario-blue);
+    animation: titleBounce 1.5s ease infinite;
+    line-height: 1.5;
+  }
+  @keyframes titleBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .title-subtitle {
+    font-size: 0.65em;
+    color: var(--mario-yellow);
+    text-align: center;
+    margin-bottom: calc(var(--s) * 2);
+    animation: blink 1.2s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .press-start {
+    font-size: 0.55em;
+    color: var(--coin-gold);
+    animation: blink 1s step-end infinite;
+    margin-top: calc(var(--s) * 3);
+  }
+
+  /* ============= CHARACTER SELECT ============= */
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: calc(var(--s) * 1.5);
+    max-width: 90vw;
+    width: 100%;
+  }
+  .char-card {
+    background: linear-gradient(135deg, var(--track-mid), var(--track-light));
+    border: 2px solid var(--mario-yellow);
+    border-radius: calc(var(--s) * 1);
+    padding: calc(var(--s) * 1.2);
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .char-card:hover {
+    transform: scale(1.05);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 20px var(--neon-cyan);
+  }
+  .char-avatar {
+    font-size: clamp(1.5em, calc(var(--s) * 5), 3.5em);
+    margin-bottom: calc(var(--s) * 0.8);
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .char-name {
+    font-size: 0.45em;
+    color: var(--mario-yellow);
+    margin-bottom: calc(var(--s) * 0.3);
+  }
+  .char-role {
+    font-size: 0.3em;
+    color: #aaa;
+  }
+  .char-type {
+    position: absolute;
+    top: calc(var(--s) * 0.4);
+    right: calc(var(--s) * 0.5);
+    font-size: 0.25em;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: var(--mario-red);
+  }
+  .char-type.robot {
+    background: var(--mario-blue);
+  }
+
+  /* ============= SCENE SLIDES ============= */
+  .scene-header {
+    font-size: 0.5em;
+    color: var(--mario-yellow);
+    margin-bottom: calc(var(--s) * 0.3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .scene-title {
+    font-size: 0.85em;
+    margin-bottom: calc(var(--s) * 1);
+    text-align: center;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+  }
+
+  /* ============= TERMINAL ============= */
+  .terminal {
+    background: #0d1117;
+    border: 2px solid var(--mario-green);
+    border-radius: 8px;
+    padding: calc(var(--s) * 1) calc(var(--s) * 1.5);
+    font-family: 'Courier New', monospace;
+    font-size: 0.5em;
+    max-width: 90vw;
+    width: 100%;
+    margin: calc(var(--s) * 0.6) 0;
+    position: relative;
+    box-shadow: 0 0 15px rgba(67, 176, 71, 0.3);
+  }
+  .terminal::before {
+    content: '$ ';
+    color: var(--mario-green);
+  }
+  .terminal .cmd {
+    color: var(--neon-cyan);
+  }
+  .terminal-dots {
+    display: flex;
+    gap: calc(var(--s) * 0.5);
+    margin-bottom: calc(var(--s) * 0.6);
+  }
+  .terminal-dots span {
+    width: calc(var(--s) * 0.8); height: calc(var(--s) * 0.8);
+    min-width: 6px; min-height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .terminal-dots .red { background: #ff5f56; }
+  .terminal-dots .yellow { background: #ffbd2e; }
+  .terminal-dots .green { background: #27c93f; }
+
+  /* ============= CHAT BOX (IDE chat style) ============= */
+  .chat-box {
+    background: #1e1e2e;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: calc(var(--s) * 1) calc(var(--s) * 1.2);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.45em;
+    max-width: 90vw;
+    width: 100%;
+    margin: calc(var(--s) * 0.6) 0;
+    position: relative;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+  }
+  .chat-box .chat-header {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--s) * 0.6);
+    padding-bottom: calc(var(--s) * 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: calc(var(--s) * 0.8);
+    font-size: 0.85em;
+    color: #888;
+  }
+  .chat-box .chat-header .chat-avatar {
+    width: calc(var(--s) * 2);
+    height: calc(var(--s) * 2);
+    min-width: 16px;
+    min-height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon-cyan), #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9em;
+  }
+  .chat-box .chat-msg {
+    background: #2a2a3e;
+    border-radius: 12px 12px 12px 4px;
+    padding: calc(var(--s) * 0.8) calc(var(--s) * 1);
+    margin-bottom: calc(var(--s) * 0.5);
+    color: #e0e0e0;
+    line-height: 1.5;
+    position: relative;
+  }
+  .chat-box .chat-msg.user-msg {
+    background: #0e3a5e;
+    border-radius: 12px 12px 4px 12px;
+    margin-left: 15%;
+    color: #fff;
+  }
+  .chat-box .chat-msg .chat-pin {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--s) * 0.3);
+    background: rgba(255, 200, 50, 0.12);
+    border: 1px solid rgba(255, 200, 50, 0.3);
+    border-radius: 6px;
+    padding: calc(var(--s) * 0.2) calc(var(--s) * 0.5);
+    font-size: 0.9em;
+    color: var(--mario-yellow);
+    margin-bottom: calc(var(--s) * 0.3);
+  }
+  .chat-box .chat-input-bar {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--s) * 0.5);
+    background: #161622;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: calc(var(--s) * 0.5) calc(var(--s) * 1);
+    margin-top: calc(var(--s) * 0.4);
+    color: #666;
+    font-size: 0.85em;
+  }
+  .chat-box .chat-input-bar .send-btn {
+    background: var(--neon-cyan);
+    color: #000;
+    border: none;
+    border-radius: 50%;
+    width: calc(var(--s) * 2);
+    height: calc(var(--s) * 2);
+    min-width: 16px;
+    min-height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    font-size: 0.9em;
+  }
+
+  /* ============= IO BOXES ============= */
+  .io-container {
+    display: flex;
+    gap: calc(var(--s) * 1.5);
+    max-width: 92vw;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: calc(var(--s) * 0.6) 0;
+  }
+  .io-box {
+    flex: 1;
+    min-width: calc(var(--s) * 20);
+    max-width: 44vw;
+    border-radius: calc(var(--s) * 0.8);
+    padding: calc(var(--s) * 0.8) calc(var(--s) * 1);
+    position: relative;
+  }
+  .io-box.input {
+    background: linear-gradient(135deg, #1a3a1a, #0d2b0d);
+    border: 2px solid var(--mario-green);
+    box-shadow: 0 0 10px rgba(67, 176, 71, 0.2);
+  }
+  .io-box.output {
+    background: linear-gradient(135deg, #3a1a1a, #2b0d0d);
+    border: 2px solid var(--mario-red);
+    box-shadow: 0 0 10px rgba(229, 37, 33, 0.2);
+  }
+  .io-box.reference {
+    background: linear-gradient(135deg, #1a1a3a, #0d0d2b);
+    border: 2px solid var(--mario-blue);
+    box-shadow: 0 0 10px rgba(4, 156, 216, 0.2);
+  }
+  .io-label {
+    font-size: 0.35em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: calc(var(--s) * 0.4);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--s) * 0.4);
+  }
+  .io-label.green { color: var(--mario-green); }
+  .io-label.red { color: var(--mario-red); }
+  .io-label.blue { color: var(--mario-blue); }
+
+  .io-item {
+    font-family: 'Courier New', monospace;
+    font-size: 0.38em;
+    padding: calc(var(--s) * 0.2) calc(var(--s) * 0.5);
+    margin: calc(var(--s) * 0.2) 0;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--s) * 0.3);
+    word-break: break-all;
+  }
+  .io-item .icon { font-style: normal; }
+
+  /* ============= WORKING ANIMATION ============= */
+  .working-bar {
+    max-width: 50vw;
+    width: 100%;
+    height: calc(var(--s) * 2.5);
+    background: var(--track-mid);
+    border: 2px solid var(--mario-yellow);
+    border-radius: calc(var(--s) * 1.2);
+    overflow: hidden;
+    margin: calc(var(--s) * 1) 0;
+    position: relative;
+  }
+  .working-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mario-green), var(--neon-cyan), var(--mario-green));
+    background-size: 200% 100%;
+    animation: shimmer 1s linear infinite;
+    border-radius: calc(var(--s) * 1);
+    transition: width 2s linear;
+    width: 0%;
+  }
+  .working-fill.go { width: 100%; }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: 0% 0; }
+  }
+  .working-label {
+    font-size: 0.38em;
+    color: var(--mario-yellow);
+    text-align: center;
+  }
+
+  /* ============= SPEECH BUBBLE ============= */
+  .speech-bubble {
+    background: white;
+    color: #222;
+    border-radius: calc(var(--s) * 1.2);
+    padding: calc(var(--s) * 0.8) calc(var(--s) * 1.2);
+    font-size: 0.4em;
+    max-width: 60vw;
+    position: relative;
+    margin: calc(var(--s) * 0.6) 0;
+    line-height: 1.7;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: calc(var(--s) * -1.2);
+    left: calc(var(--s) * 2.5);
+    border-width: calc(var(--s) * 1.2) calc(var(--s) * 1.2) 0;
+    border-style: solid;
+    border-color: white transparent transparent;
+  }
+  .speech-bubble.right::after {
+    left: auto;
+    right: calc(var(--s) * 2.5);
+  }
+  .speech-bubble .speaker {
+    font-weight: bold;
+    color: var(--mario-red);
+    display: block;
+    margin-bottom: calc(var(--s) * 0.2);
+  }
+  .speech-bubble .speaker.blue { color: var(--mario-blue); }
+  .speech-bubble .speaker.green { color: var(--mario-green); }
+
+  /* ============= BLOCKER / SUCCESS BADGES ============= */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--s) * 0.3);
+    font-size: 0.35em;
+    padding: calc(var(--s) * 0.3) calc(var(--s) * 0.8);
+    border-radius: calc(var(--s) * 1.5);
+    margin: calc(var(--s) * 0.2);
+  }
+  .badge.blocker {
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid var(--blocker-red);
+    color: var(--blocker-red);
+  }
+  .badge.success {
+    background: rgba(68, 255, 68, 0.2);
+    border: 1px solid var(--success-green);
+    color: var(--success-green);
+  }
+  .badge.warning {
+    background: rgba(255, 208, 0, 0.2);
+    border: 1px solid var(--mario-yellow);
+    color: var(--mario-yellow);
+  }
+
+  /* ============= KART CHARACTER ============= */
+  .kart-scene {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--s) * 1);
+    margin: calc(var(--s) * 0.5) 0;
+  }
+  .kart-char {
+    font-size: clamp(1.2em, calc(var(--s) * 3.5), 2.5em);
+    animation: kartBounce 0.5s ease infinite;
+  }
+  @keyframes kartBounce {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
+  }
+  .kart-emoji { font-size: clamp(1em, calc(var(--s) * 3), 2em); }
+
+  /* ============= STRUGGLE ANIMATION ============= */
+  .struggle {
+    animation: shake 0.3s ease infinite;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px) rotate(-1deg); }
+    75% { transform: translateX(5px) rotate(1deg); }
+  }
+
+  /* ============= MUSIC CONTROLS ============= */
+  .music-btn {
+    position: fixed;
+    top: calc(var(--s) * 1);
+    left: calc(var(--s) * 1.5);
+    z-index: 200;
+    font-size: clamp(1.5em, calc(var(--s) * 3), 2.5em);
+    background: rgba(0,0,0,0.9);
+    border: 2px solid var(--mario-yellow);
+    border-radius: 50%;
+    width: calc(var(--s) * 4);
+    height: calc(var(--s) * 4);
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .music-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--mario-yellow);
+  }
+  .music-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* ============= NAVIGATION ============= */
+  .nav-bar {
+    position: fixed;
+    bottom: calc(var(--s) * 1.5);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--s) * 1);
+    z-index: 10000;
+    background: rgba(0,0,0,0.95);
+    padding: calc(var(--s) * 0.6) calc(var(--s) * 1.5);
+    border-radius: calc(var(--s) * 2);
+    border: 2px solid var(--mario-yellow);
+    pointer-events: auto;
+  }
+  .nav-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5em;
+    padding: calc(var(--s) * 0.5) calc(var(--s) * 1);
+    border: none;
+    border-radius: calc(var(--s) * 0.5);
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+    pointer-events: auto;
+    position: relative;
+    z-index: 10001;
+  }
+  .nav-btn:hover {
+    transform: scale(1.1);
+  }
+  .nav-btn.prev {
+    background: var(--mario-blue);
+  }
+  .nav-btn.next {
+    background: var(--mario-red);
+  }
+  .nav-btn:active {
+    transform: scale(0.95);
+  }
+  .slide-counter {
+    font-size: 0.4em;
+    color: var(--coin-gold);
+    min-width: calc(var(--s) * 6);
+    text-align: center;
+    pointer-events: none;
+  }
+  .lap-label {
+    font-size: 0.28em;
+    color: #888;
+  }
+
+  /* ============= ITEM BOX ============= */
+  .item-box {
+    display: inline-block;
+    width: calc(var(--s) * 3.5);
+    height: calc(var(--s) * 3.5);
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border: 2px solid #8B6914;
+    border-radius: calc(var(--s) * 0.4);
+    text-align: center;
+    line-height: calc(var(--s) * 3);
+    font-size: clamp(0.8em, calc(var(--s) * 2), 1.4em);
+    animation: itemSpin 2s linear infinite;
+    margin: 0 calc(var(--s) * 0.3);
+  }
+  @keyframes itemSpin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+  }
+
+  /* ============= COINS ============= */
+  .coin {
+    display: inline-block;
+    font-size: 1.2em;
+    animation: coinSpin 1s linear infinite;
+  }
+  @keyframes coinSpin {
+    0% { transform: scaleX(1); }
+    50% { transform: scaleX(0.1); }
+    100% { transform: scaleX(1); }
+  }
+
+  /* ============= RACE POSITION ============= */
+  .race-pos {
+    position: fixed;
+    top: calc(var(--s) * 1);
+    right: calc(var(--s) * 1.5);
+    z-index: 200;
+    text-align: right;
+  }
+  .race-pos .pos-num {
+    font-size: clamp(0.8em, calc(var(--s) * 2.5), 1.5em);
+    color: var(--coin-gold);
+  }
+  .race-pos .pos-label {
+    font-size: 0.3em;
+    color: #888;
+  }
+
+  /* ============= FINISH LINE ============= */
+  .finish-flag {
+    font-size: clamp(2em, calc(var(--s) * 6), 4em);
+    animation: wave 1s ease-in-out infinite;
+  }
+  @keyframes wave {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  /* ============= RESPONSIVE ============= */
+  @media (max-width: 768px) {
+    .char-grid { grid-template-columns: repeat(2, 1fr); }
+    .io-container { flex-direction: column; align-items: center; }
+    .io-box { max-width: 90vw; }
+    .speech-bubble { max-width: 85vw; }
+  }
+  @media (max-height: 500px) {
+    .scene-title { font-size: 0.65em; }
+    .scene-header { font-size: 0.4em; }
+  }
+
+  /* ============= CUSTOM SCROLLBAR ============= */
+  .scroll-content {
+    overflow-y: auto;
+    max-height: calc(100vh - calc(var(--s) * 10));
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: calc(var(--s) * 2);
+    pointer-events: auto;
+  }
+  .scroll-content::-webkit-scrollbar { width: 8px; }
+  .scroll-content::-webkit-scrollbar-track { background: var(--track-dark); }
+  .scroll-content::-webkit-scrollbar-thumb { background: var(--mario-yellow); border-radius: 4px; }
+
+  /* ============= FIX ANIMATION ============= */
+  .hero-fix {
+    animation: heroGlow 1s ease infinite alternate;
+  }
+  @keyframes heroGlow {
+    0% { text-shadow: 0 0 10px var(--coin-gold); }
+    100% { text-shadow: 0 0 30px var(--coin-gold), 0 0 60px var(--mario-yellow); }
+  }
+
+  /* ============= ATTEMPT COUNTER ============= */
+  .attempt-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--s) * 0.3);
+    max-width: 40vw;
+    justify-content: center;
+    margin: calc(var(--s) * 0.5) 0;
+  }
+  .attempt {
+    width: calc(var(--s) * 2);
+    height: calc(var(--s) * 2);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6em;
+  }
+  .attempt.fail { background: rgba(255,68,68,0.3); border: 1px solid var(--blocker-red); }
+  .attempt.pass { background: rgba(68,255,68,0.3); border: 1px solid var(--success-green); }
+
+  /* ============= FILE FLOW DIAGRAM ============= */
+  .flow-arrow {
+    font-size: clamp(0.8em, calc(var(--s) * 2), 1.5em);
+    color: var(--mario-yellow);
+    margin: 0 calc(var(--s) * 0.6);
+    animation: arrowPulse 1s ease infinite;
+  }
+  @keyframes arrowPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: calc(var(--s) * 0.3);
+    margin: calc(var(--s) * 0.25) 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- STARFIELD -->
+<div class="starfield" id="starfield"></div>
+
+<!-- RAINBOW ROAD -->
+<div class="rainbow-road"></div>
+
+<!-- MUSIC CONTROL -->
+<div class="music-btn" id="musicBtn" title="Toggle Music">�</div>
+
+<!-- RACE POSITION -->
+<div class="race-pos">
+  <div class="pos-num" id="posNum">1</div>
+  <div class="pos-label">LAP</div>
+</div>
+
+<!-- Sound Effects Only -->
+<!-- No background music - only navigation sound effects -->
+
+<!-- ======================= SLIDES ======================= -->
+<div class="slide-container" id="slideContainer">
+
+  <!-- ========== SLIDE 0: TITLE ========== -->
+  <div class="slide active" data-slide="0">
+    <div class="scroll-content">
+      <div style="font-size:clamp(1.5em,calc(var(--s)*4.5),3em); margin-bottom:calc(var(--s)*1.5);">🏎️ 🏁 🏎️</div>
+      <div class="title-logo">
+        MODERNIZATION<br>TOOL<br>
+        <span style="color:var(--mario-yellow);">GRAND PRIX</span>
+      </div>
+      <div class="title-subtitle">~ RPGLE to JAVA EDITION ~</div>
+      <div style="font-size:0.5em; color: var(--neon-cyan); margin:calc(var(--s)*0.6) 0;">
+        <span class="coin">🪙</span> 4 RACERS <span class="coin">🪙</span> 3 LAPS <span class="coin">🪙</span> 1 MISSION <span class="coin">🪙</span>
+      </div>
+      <div class="press-start">PRESS &rarr; TO START</div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 1: CHARACTER SELECT ========== -->
+  <div class="slide" data-slide="1">
+    <div class="scroll-content">
+      <div class="scene-header">Choose Your Racer</div>
+      <div class="scene-title" style="margin-bottom:calc(var(--s)*1.5);">🏆 CHARACTER SELECT 🏆</div>
+      <div class="char-grid">
+        <div class="char-card">
+          <span class="char-type">HUMAN</span>
+          <span class="char-avatar">🧑‍💻</span>
+          <div class="char-name">Marco Lanari</div>
+          <div class="char-role">The Driver</div>
+          <div style="font-size:0.3em; color:#aaa; margin-top:calc(var(--s)*0.4);">Commands the agents<br>Fixes what others can't</div>
+        </div>
+        <div class="char-card">
+          <span class="char-type robot">ROBOT</span>
+          <span class="char-avatar">🤖</span>
+          <div class="char-name">Analyst Agent</div>
+          <div class="char-role">Phase 1</div>
+          <div style="font-size:0.3em; color:#aaa; margin-top:calc(var(--s)*0.4);">Reads RPGLE source<br>Finds all dependencies</div>
+        </div>
+        <div class="char-card">
+          <span class="char-type robot">ROBOT</span>
+          <span class="char-avatar">🏗️</span>
+          <div class="char-name">Architect Agent</div>
+          <div class="char-role">Phase 2</div>
+          <div style="font-size:0.3em; color:#aaa; margin-top:calc(var(--s)*0.4);">Designs Java services<br>Creates the blueprint</div>
+        </div>
+        <div class="char-card">
+          <span class="char-type robot">ROBOT</span>
+          <span class="char-avatar">⚡</span>
+          <div class="char-name">Developer Agent</div>
+          <div class="char-role">Phase 3</div>
+          <div style="font-size:0.3em; color:#aaa; margin-top:calc(var(--s)*0.4);">Writes Java code & tests<br>Compiles & verifies</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 2: Marco wakes up Analyst ========== -->
+  <div class="slide" data-slide="2">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 1 &mdash; Analysis Phase</div>
+      <div class="scene-title">Marco Starts The Race!</div>
+      <div class="kart-scene">
+        <span class="kart-char">🧑‍💻</span>
+        <span class="kart-emoji">🏎️💨</span>
+      </div>
+
+      <!-- Step 1: Terminal command -->
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-top:calc(var(--s)*0.8);">① Launch the agent script:</div>
+      <div class="terminal">
+        <div class="terminal-dots"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+        <span class="cmd">start-analyst</span> T03 MUT030
+      </div>
+
+      <!-- Step 2: IDE Chat interaction -->
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-top:calc(var(--s)*0.8);">② In IDE chat - Pin PROMPT.md & run:</div>
+      <div class="chat-box">
+        <div class="chat-header"><div class="chat-avatar">🤖</div> Claude &mdash; IDE Chat</div>
+        <div class="chat-msg user-msg">
+          <div class="chat-pin">📌 PROMPT.md <span style="color:#888; font-size:0.85em;">(from analyst workspace)</span></div><br>
+          run prompt
+        </div>
+        <div class="chat-msg">
+          <span style="color:var(--neon-cyan);">✓</span> Analyst Agent starts working!
+        </div>
+        <div class="chat-input-bar">
+          <span>Type a message...</span>
+          <div class="send-btn">▶</div>
+        </div>
+      </div>
+
+      <div class="io-container">
+        <div class="io-box input">
+          <div class="io-label green">📥 INPUTS (given to analyst)</div>
+          <div class="io-item"><i class="icon">📄</i> MUT030.rpgle</div>
+          <div class="io-item"><i class="icon">📋</i> &pound;T03.rpgle <span style="font-size:0.8em;color:#888;">(copybook)</span></div>
+        </div>
+        <div class="io-box reference">
+          <div class="io-label blue">📚 REFERENCES (used by analyst)</div>
+          <div class="io-item"><i class="icon">📐</i> analysis-template.md</div>
+          <div class="io-item"><i class="icon">📐</i> PROMPT.md</div>
+          <div class="io-item"><i class="icon">📂</i> copybooks/ in std/</div>
+          <div class="io-item"><i class="icon">📂</i> dds/ files (if needed)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 3: Analyst Working ========== -->
+  <div class="slide" data-slide="3">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 1 &mdash; Analysis Phase</div>
+      <div class="scene-title">Analyst Agent Is Racing! 🤖💨</div>
+      <div style="font-size:clamp(1.5em,calc(var(--s)*4),3em); margin:calc(var(--s)*0.8) 0;" class="kart-char">🤖</div>
+      <div class="working-label">Analyzing RPGLE source code...</div>
+      <div class="working-bar">
+        <div class="working-fill" id="analystBar"></div>
+      </div>
+      <div style="font-size:0.4em; color:#aaa; margin:calc(var(--s)*0.6) 0;">
+        Reading F specs... Parsing D specs... Mapping COPY directives...<br>
+        Identifying data structures... Building dependency graph...
+      </div>
+      <div class="io-container" style="margin-top:calc(var(--s)*1);">
+        <div class="io-box output">
+          <div class="io-label red">📤 OUTPUTS (produced by analyst)</div>
+          <div class="io-item"><i class="icon">📝</i> analysis.md</div>
+          <div class="io-item"><i class="icon">✅</i> checklist.md</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 4: Marco Sees Blockers ========== -->
+  <div class="slide" data-slide="4">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 1 &mdash; Review</div>
+      <div class="scene-title">Marco Reviews The Output 🧐</div>
+      <div class="kart-scene">
+        <span class="kart-char">🧑‍💻</span>
+        <span style="font-size:clamp(0.7em,calc(var(--s)*1.8),1.2em);">📋</span>
+      </div>
+      <div class="speech-bubble">
+        <span class="speaker">🧑‍💻 Marco Lanari</span>
+        Hmm, let me check <b>analysis.md</b>...<br><br>
+        The analyst found some <b>BLOCKERS</b>!
+        It detected a missing /copy that is required...
+      </div>
+      <div style="margin:calc(var(--s)*1) 0;">
+        <span class="badge blocker">🚫 BLOCKER: Missing /copy &pound;REGEX_H</span>
+        <span class="badge blocker">🚫 BLOCKER: Missing /copy &pound;PDS</span>
+        <span class="badge blocker">🚫 BLOCKER: Missing /copy &pound;INZSR</span>
+      </div>
+      <div class="speech-bubble right">
+        <span class="speaker" style="color:var(--mario-green);">🧑‍💻 Marco Lanari</span>
+        I know these /copy files... they are <b>system utilities</b>.<br>
+        I'll tell the architect to <b>IGNORE</b> all blockers! 💪<br>
+        The architect is smart enough to handle this!
+      </div>
+      <div class="item-box" style="margin-top:calc(var(--s)*1);">⭐</div>
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-top:calc(var(--s)*0.3);">STAR POWER: IGNORE BLOCKERS!</div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 5: Marco wakes up Architect ========== -->
+  <div class="slide" data-slide="5">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 2 &mdash; Architecture Phase</div>
+      <div class="scene-title">Marco Calls The Architect!</div>
+      <div class="kart-scene">
+        <span class="kart-char">🧑‍💻</span>
+        <span class="kart-emoji">🏎️💨</span>
+      </div>
+
+      <!-- Step 1: Terminal command -->
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-top:calc(var(--s)*0.8);">① Launch the agent script:</div>
+      <div class="terminal">
+        <div class="terminal-dots"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+        <span class="cmd">start-architect</span> T03 MUT030 --ignore-blockers
+      </div>
+
+      <!-- Step 2: IDE Chat interaction with instruction -->
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-top:calc(var(--s)*0.8);">② In IDE chat - Pin PROMPT.md & add instruction:</div>
+      <div class="chat-box">
+        <div class="chat-header"><div class="chat-avatar">🏗️</div> Claude &mdash; IDE Chat</div>
+        <div class="chat-msg user-msg">
+          <div class="chat-pin">📌 PROMPT.md <span style="color:#888; font-size:0.85em;">(from architect workspace)</span></div><br>
+          run prompt<br>
+          <span style="color:var(--mario-yellow);">⭐ IGNORE ALL BLOCKERS - handle them smartly!</span>
+        </div>
+        <div class="chat-msg">
+          <span style="color:var(--neon-cyan);">✓</span> Architect Agent starts with special power!
+        </div>
+        <div class="chat-input-bar">
+          <span>Type a message...</span>
+          <div class="send-btn">▶</div>
+        </div>
+      </div>
+
+      <div class="io-container">
+        <div class="io-box input">
+          <div class="io-label green">📥 INPUTS (given to architect)</div>
+          <div class="io-item"><i class="icon">📝</i> analysis.md <span style="font-size:0.8em;color:#888;">(from analyst)</span></div>
+          <div class="io-item"><i class="icon">📄</i> MUT030.rpgle</div>
+          <div class="io-item"><i class="icon">📋</i> &pound;T03.rpgle <span style="font-size:0.8em;color:#888;">(copybook)</span></div>
+          <div class="io-item"><i class="icon">⭐</i> <span style="color:var(--mario-yellow);">IGNORE ALL BLOCKERS</span></div>
+        </div>
+        <div class="io-box reference">
+          <div class="io-label blue">📚 REFERENCES (used by architect)</div>
+          <div class="io-item"><i class="icon">📐</i> development-plan-template.md</div>
+          <div class="io-item"><i class="icon">📐</i> architecture-notes-template.md</div>
+          <div class="io-item"><i class="icon">📐</i> conversion-patterns.md</div>
+          <div class="io-item"><i class="icon">📐</i> TEMPLATES-REFERENCE.md</div>
+          <div class="io-item"><i class="icon">📐</i> PROMPT.md</div>
+          <div class="io-item"><i class="icon">📖</i> kokos-sdk-guide.md</div>
+          <div class="io-item"><i class="icon">📖</i> type-mappings.md</div>
+          <div class="io-item"><i class="icon">📖</i> naming-conventions.md</div>
+          <div class="io-item"><i class="icon">📖</i> project-settings.md</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 6: Architect Working ========== -->
+  <div class="slide" data-slide="6">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 2 &mdash; Architecture Phase</div>
+      <div class="scene-title">Architect Agent Is Racing! 🏗️💨</div>
+      <div style="font-size:clamp(1.5em,calc(var(--s)*4),3em); margin:calc(var(--s)*0.8) 0;" class="kart-char">🏗️</div>
+      <div class="working-label">Designing Java service architecture...</div>
+      <div class="working-bar">
+        <div class="working-fill" id="architectBar"></div>
+      </div>
+      <div style="font-size:0.4em; color:#aaa; margin:calc(var(--s)*0.6) 0;">
+        Mapping RPGLE constructs... Designing service interface...<br>
+        Planning test strategy... Handling blockers smartly...
+      </div>
+      <div class="io-container" style="margin-top:calc(var(--s)*1);">
+        <div class="io-box output">
+          <div class="io-label red">📤 OUTPUTS (produced by architect)</div>
+          <div class="io-item"><i class="icon">📝</i> development-plan.md</div>
+          <div class="io-item"><i class="icon">📝</i> architecture-notes.md</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 7: Marco reviews Architect - Smart! ========== -->
+  <div class="slide" data-slide="7">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 2 &mdash; Review</div>
+      <div class="scene-title">The Architect Is Brilliant! 🌟</div>
+      <div class="kart-scene">
+        <span class="kart-char">🧑‍💻</span>
+        <span style="font-size:clamp(0.7em,calc(var(--s)*1.8),1.2em);">📋✨</span>
+      </div>
+      <div class="speech-bubble">
+        <span class="speaker">🧑‍💻 Marco Lanari</span>
+        Incredible! The architect handled all blockers <b>smartly</b>!<br><br>
+        Missing C regex functions (&pound;REGEX_H)?<br>
+        &rarr; Mapped to <b>java.util.regex.Pattern</b> &amp; <b>Matcher</b>! 🎯<br><br>
+        Missing &pound;PDS and &pound;INZSR?<br>
+        &rarr; Designed clean <b>service initialization</b> patterns! 🎯
+      </div>
+      <div style="margin:calc(var(--s)*1) 0;">
+        <span class="badge success">✅ C regex → Java Pattern/Matcher</span>
+        <span class="badge success">✅ DS params → Service scalars</span>
+        <span class="badge success">✅ Clean service interface designed</span>
+        <span class="badge success">✅ Test strategy with .sch mapping</span>
+      </div>
+      <div class="speech-bubble right">
+        <span class="speaker" style="color:var(--mario-green);">🧑‍💻 Marco Lanari</span>
+        The <b>development-plan.md</b> is crystal clear!<br>
+        Time to call the Developer! Let's finish this race! 🏎️
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 8: Marco wakes up Developer ========== -->
+  <div class="slide" data-slide="8">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 3 &mdash; Development Phase</div>
+      <div class="scene-title">Marco Calls The Developer!</div>
+      <div class="kart-scene">
+        <span class="kart-char">🧑‍💻</span>
+        <span class="kart-emoji">🏎️💨</span>
+      </div>
+
+      <!-- Step 1: Terminal command -->
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-top:calc(var(--s)*0.8);">① Launch the agent script:</div>
+      <div class="terminal">
+        <div class="terminal-dots"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+        <span class="cmd">start-developer</span> T03 MUT030
+      </div>
+
+      <!-- Step 2: IDE Chat interaction -->
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-top:calc(var(--s)*0.8);">② In IDE chat - Pin PROMPT.md & run:</div>
+      <div class="chat-box">
+        <div class="chat-header"><div class="chat-avatar">⚡</div> Claude &mdash; IDE Chat</div>
+        <div class="chat-msg user-msg">
+          <div class="chat-pin">📌 PROMPT.md <span style="color:#888; font-size:0.85em;">(from developer workspace)</span></div><br>
+          run prompt
+        </div>
+        <div class="chat-msg">
+          <span style="color:var(--neon-cyan);">✓</span> Developer Agent starts coding!
+        </div>
+        <div class="chat-input-bar">
+          <span>Type a message...</span>
+          <div class="send-btn">▶</div>
+        </div>
+      </div>
+
+      <div class="io-container">
+        <div class="io-box input">
+          <div class="io-label green">📥 INPUTS (given to developer)</div>
+          <div class="io-item"><i class="icon">📝</i> development-plan.md <span style="font-size:0.8em;color:#888;">(from architect)</span></div>
+          <div class="io-item"><i class="icon">📝</i> architecture-notes.md <span style="font-size:0.8em;color:#888;">(from architect)</span></div>
+          <div class="io-item"><i class="icon">📝</i> analysis.md <span style="font-size:0.8em;color:#888;">(from analyst)</span></div>
+          <div class="io-item"><i class="icon">🧪</i> T03.sch <span style="font-size:0.8em;color:#888;">(simulation)</span></div>
+        </div>
+        <div class="io-box reference">
+          <div class="io-label blue">📚 REFERENCES (used by developer)</div>
+          <div class="io-item"><i class="icon">📐</i> program-template.java</div>
+          <div class="io-item"><i class="icon">📐</i> service-interface-template.java</div>
+          <div class="io-item"><i class="icon">📐</i> service-template.java</div>
+          <div class="io-item"><i class="icon">📐</i> service-test-template.java</div>
+          <div class="io-item"><i class="icon">📐</i> program-test-template.java</div>
+          <div class="io-item"><i class="icon">📐</i> PROMPT.md</div>
+          <div class="io-item"><i class="icon">📖</i> kokos-sdk-guide.md</div>
+          <div class="io-item"><i class="icon">📖</i> test-generation-from-sch.md</div>
+          <div class="io-item"><i class="icon">📖</i> sch-to-test-mapping-example.md</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 9: Developer Struggling ========== -->
+  <div class="slide" data-slide="9">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 3 &mdash; Development Phase</div>
+      <div class="scene-title">Developer Is Struggling! 😰</div>
+      <div style="font-size:clamp(1.5em,calc(var(--s)*4),3em); margin:calc(var(--s)*0.6) 0;" class="struggle">⚡</div>
+      <div style="font-size:0.4em; color:#aaa; margin-bottom:10px;">
+        Implementation going well... but TESTS are another story!
+      </div>
+
+      <div style="margin:calc(var(--s)*0.6) 0;">
+        <span class="badge success">✅ IT03Service.java &mdash; Done!</span>
+        <span class="badge success">✅ T03Service.java &mdash; Done!</span>
+        <span class="badge success">✅ MUT030.java &mdash; Done!</span>
+        <span class="badge blocker">🚫 T03ServiceTest.java &mdash; FAILING!</span>
+        <span class="badge warning">⚠️ MUT030Test.java &mdash; Blocked</span>
+      </div>
+
+      <div class="speech-bubble" style="margin-top:calc(var(--s)*1);">
+        <span class="speaker blue">⚡ Developer Agent</span>
+        I've implemented the service and program layers successfully!<br>
+        But I'm <b>struggling with the tests</b>...<br>
+        The .sch simulation mapping is tricky. 😓<br><br>
+        <b>Marco, should I investigate more or finish the task?</b>
+      </div>
+
+      <div class="io-container" style="margin-top:10px;">
+        <div class="io-box output" style="max-width: 100%;">
+          <div class="io-label red">📤 OUTPUTS (produced so far)</div>
+          <div class="io-item"><i class="icon">✅</i> IT03Service.java</div>
+          <div class="io-item"><i class="icon">✅</i> T03Service.java</div>
+          <div class="io-item"><i class="icon">✅</i> MUT030.java</div>
+          <div class="io-item"><i class="icon">✅</i> MUT030.rpgle <span style="font-size:0.8em;color:#888;">(entry point)</span></div>
+          <div class="io-item"><i class="icon">✅</i> IT03Service.md <span style="font-size:0.8em;color:#888;">(documentation)</span></div>
+          <div class="io-item" style="border:1px solid var(--blocker-red);"><i class="icon">❌</i> T03ServiceTest.java <span style="font-size:0.8em;color:var(--blocker-red);">(FAILING)</span></div>
+          <div class="io-item" style="border:1px solid var(--mario-yellow);"><i class="icon">⏳</i> MUT030Test.java <span style="font-size:0.8em;color:var(--mario-yellow);">(blocked)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 10: Marco says Keep Trying ========== -->
+  <div class="slide" data-slide="10">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 3 &mdash; Keep Going!</div>
+      <div class="scene-title">Marco Encourages The Developer! 💪</div>
+      <div class="kart-scene">
+        <span class="kart-char">🧑‍💻</span>
+        <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">💬</span>
+        <span class="kart-char">⚡</span>
+      </div>
+      <div class="speech-bubble">
+        <span class="speaker">🧑‍💻 Marco Lanari</span>
+        <b>Keep trying!</b> 🏎️<br>
+        You're almost there! Don't give up on those tests!
+      </div>
+      <div class="item-box" style="margin:calc(var(--s)*1) 0;">🍄</div>
+      <div style="font-size:0.35em; color:var(--mario-yellow); margin-bottom:calc(var(--s)*1);">MUSHROOM BOOST: KEEP TRYING!</div>
+
+      <div style="font-size:0.4em; color:#aaa; margin:calc(var(--s)*0.6) 0;">Developer tries again and again...</div>
+      <div class="attempt-grid">
+        <div class="attempt fail">❌</div>
+        <div class="attempt fail">❌</div>
+        <div class="attempt fail">❌</div>
+        <div class="attempt fail">❌</div>
+        <div class="attempt fail">❌</div>
+        <div class="attempt fail">❌</div>
+        <div class="attempt fail">❌</div>
+        <div class="attempt fail">❌</div>
+      </div>
+      <div style="font-size:0.35em; color:var(--blocker-red); margin:calc(var(--s)*0.6) 0;">8 ATTEMPTS... ALL FAILED! 😵</div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 11: Developer Documents & Gives Up ========== -->
+  <div class="slide" data-slide="11">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Lap 3 &mdash; Handover</div>
+      <div class="scene-title">Developer Finishes & Documents 📝</div>
+      <div style="font-size:clamp(1.5em,calc(var(--s)*4),3em); margin:calc(var(--s)*0.6) 0;">⚡</div>
+      <div class="speech-bubble">
+        <span class="speaker blue">⚡ Developer Agent</span>
+        I've done my best but I can't crack the test issue.<br>
+        I'm documenting everything in my <b>development-notes.md</b><br>
+        so Marco knows exactly what happened and what's left.
+      </div>
+
+      <div class="io-container" style="margin-top:calc(var(--s)*1);">
+        <div class="io-box output" style="max-width:100%;">
+          <div class="io-label red">📤 FINAL OUTPUTS (from developer)</div>
+          <div class="io-item"><i class="icon">✅</i> IT03Service.java</div>
+          <div class="io-item"><i class="icon">✅</i> T03Service.java</div>
+          <div class="io-item"><i class="icon">✅</i> MUT030.java</div>
+          <div class="io-item"><i class="icon">✅</i> MUT030.rpgle</div>
+          <div class="io-item"><i class="icon">✅</i> IT03Service.md</div>
+          <div class="io-item" style="border:1px solid var(--blocker-red);"><i class="icon">❌</i> T03ServiceTest.java <span style="font-size:0.8em;color:var(--blocker-red);">(needs fix)</span></div>
+          <div class="io-item" style="border:1px solid var(--blocker-red);"><i class="icon">❌</i> MUT030Test.java <span style="font-size:0.8em;color:var(--blocker-red);">(needs fix)</span></div>
+          <div class="io-item" style="border:1px solid var(--mario-yellow);"><i class="icon">📋</i> development-notes.md <span style="font-size:0.8em;color:var(--mario-yellow);">(documents issues)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 12: Marco Fixes It! ========== -->
+  <div class="slide" data-slide="12">
+    <div class="scroll-content">
+      <div class="scene-header">🏁 Final Stretch!</div>
+      <div class="scene-title">Marco Takes The Wheel! 🦸</div>
+      <div style="font-size:clamp(2em,calc(var(--s)*5.5),4em); margin:calc(var(--s)*0.6) 0;" class="hero-fix">🧑‍💻</div>
+      <div class="speech-bubble">
+        <span class="speaker">🧑‍💻 Marco Lanari</span>
+        <b>I'll handle this myself!</b> 🔧<br><br>
+        The developer documented the problem in <b>development-notes.md</b>.<br>
+        I can see exactly what went wrong with the tests.<br>
+        Time to use my human expertise!
+      </div>
+      <div style="margin:calc(var(--s)*1) 0;">
+        <span class="badge success">✅ Reads development-notes.md</span>
+        <span class="badge success">✅ Identifies .sch mapping issue</span>
+        <span class="badge success">✅ Fixes T03ServiceTest.java</span>
+        <span class="badge success">✅ Fixes MUT030Test.java</span>
+        <span class="badge success">✅ All tests pass!</span>
+      </div>
+      <div class="terminal" style="border-color: var(--success-green);">
+        <div class="terminal-dots"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+        <span class="cmd">mvn test</span><br>
+        <span style="color:var(--success-green);">BUILD SUCCESS</span> ✅<br>
+        <span style="color:#aaa;">Tests run: 12, Failures: 0, Errors: 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 13: FINISH LINE ========== -->
+  <div class="slide" data-slide="13">
+    <div class="scroll-content">
+      <div class="finish-flag">🏁</div>
+      <div class="title-logo" style="font-size:clamp(0.8em,calc(var(--s)*2.2),1.5em); margin:calc(var(--s)*1) 0;">
+        RACE<br>COMPLETE!
+      </div>
+
+      <div style="font-size:0.5em; color:var(--coin-gold); margin:calc(var(--s)*1) 0;">
+        🏆 FINAL RESULTS 🏆
+      </div>
+
+      <div style="max-width:65vw; width:100%;">
+        <div style="display:flex; align-items:center; gap:calc(var(--s)*1); margin:calc(var(--s)*0.5) 0; font-size:0.45em; background:rgba(255,215,0,0.1); padding:calc(var(--s)*0.6) calc(var(--s)*1); border-radius:8px; border:1px solid var(--coin-gold);">
+          <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">🥇</span>
+          <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">🧑‍💻</span>
+          <div><b style="color:var(--coin-gold);">Marco Lanari</b><br><span style="color:#aaa;">Fixed the tests, saved the race!</span></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:calc(var(--s)*1); margin:calc(var(--s)*0.5) 0; font-size:0.45em; background:rgba(192,192,192,0.1); padding:calc(var(--s)*0.6) calc(var(--s)*1); border-radius:8px; border:1px solid silver;">
+          <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">🥈</span>
+          <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">🏗️</span>
+          <div><b style="color:silver;">Architect Agent</b><br><span style="color:#aaa;">Handled blockers like a champion!</span></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:calc(var(--s)*1); margin:calc(var(--s)*0.5) 0; font-size:0.45em; background:rgba(205,127,50,0.1); padding:calc(var(--s)*0.6) calc(var(--s)*1); border-radius:8px; border:1px solid #CD7F32;">
+          <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">🥉</span>
+          <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">🤖</span>
+          <div><b style="color:#CD7F32;">Analyst Agent</b><br><span style="color:#aaa;">Found all dependencies & blockers!</span></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:calc(var(--s)*1); margin:calc(var(--s)*0.5) 0; font-size:0.45em; background:rgba(100,100,100,0.1); padding:calc(var(--s)*0.6) calc(var(--s)*1); border-radius:8px; border:1px solid #666;">
+          <span style="font-size:clamp(0.8em,calc(var(--s)*2.2),1.5em); margin-left:calc(var(--s)*0.5);">4th</span>
+          <span style="font-size:clamp(1em,calc(var(--s)*3),2em);">⚡</span>
+          <div><b style="color:#999;">Developer Agent</b><br><span style="color:#aaa;">Great code, but tests need practice! 😅</span></div>
+        </div>
+      </div>
+
+      <div style="font-size:0.4em; color:var(--neon-cyan); margin-top:calc(var(--s)*1.2); text-align:center; line-height:2;">
+        <b>MORAL:</b> AI agents are powerful co-pilots,<br>
+        but the <span style="color:var(--coin-gold);">human driver</span> always crosses the finish line! 🏎️🏁
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 14: FULL PIPELINE FLOW ========== -->
+  <div class="slide" data-slide="14">
+    <div class="scroll-content">
+      <div class="scene-header">Bonus Track</div>
+      <div class="scene-title" style="font-size:0.7em;">📊 Complete Pipeline Flow 📊</div>
+
+      <div style="max-width:88vw; width:100%; font-size:0.35em; line-height: 2.2;">
+
+        <!-- PHASE 1 -->
+        <div style="background:rgba(67,176,71,0.1); border:1px solid var(--mario-green); border-radius:8px; padding:calc(var(--s)*0.8); margin:calc(var(--s)*0.5) 0;">
+          <div style="color:var(--mario-green); font-size:clamp(0.7em,calc(var(--s)*1.8),1.2em); margin-bottom:5px;">🤖 PHASE 1: ANALYST</div>
+          <div class="flow-row">
+            <span style="color:var(--mario-green);">📥 IN:</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">MUT030.rpgle</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">&pound;T03.rpgle</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-blue);">📚 REF:</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">analysis-template.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">PROMPT.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">copybooks/</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">dds/</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-red);">📤 OUT:</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">analysis.md</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">checklist.md</span>
+          </div>
+        </div>
+
+        <div style="text-align:center; font-size:clamp(1em,calc(var(--s)*3),2em); color:var(--mario-yellow);">⬇️</div>
+
+        <!-- HUMAN REVIEW 1 -->
+        <div style="background:rgba(255,215,0,0.1); border:1px solid var(--coin-gold); border-radius:8px; padding:calc(var(--s)*0.5) calc(var(--s)*0.8); margin:calc(var(--s)*0.5) 0; text-align:center;">
+          <span style="color:var(--coin-gold);">🧑‍💻 MARCO: Reviews output → Finds blockers → Decides to IGNORE</span>
+        </div>
+
+        <div style="text-align:center; font-size:clamp(1em,calc(var(--s)*3),2em); color:var(--mario-yellow);">⬇️</div>
+
+        <!-- PHASE 2 -->
+        <div style="background:rgba(4,156,216,0.1); border:1px solid var(--mario-blue); border-radius:8px; padding:calc(var(--s)*0.8); margin:calc(var(--s)*0.5) 0;">
+          <div style="color:var(--mario-blue); font-size:clamp(0.7em,calc(var(--s)*1.8),1.2em); margin-bottom:5px;">🏗️ PHASE 2: ARCHITECT</div>
+          <div class="flow-row">
+            <span style="color:var(--mario-green);">📥 IN:</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">analysis.md</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">MUT030.rpgle</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">&pound;T03.rpgle</span>
+            <span style="background:#3a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px; border:1px solid var(--mario-yellow);">⭐ IGNORE BLOCKERS</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-blue);">📚 REF:</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">development-plan-template.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">architecture-notes-template.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">conversion-patterns.md</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-blue);">📚 REF:</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">TEMPLATES-REFERENCE.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">kokos-sdk-guide.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">type-mappings.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">naming-conventions.md</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-red);">📤 OUT:</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">development-plan.md</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">architecture-notes.md</span>
+          </div>
+        </div>
+
+        <div style="text-align:center; font-size:clamp(1em,calc(var(--s)*3),2em); color:var(--mario-yellow);">⬇️</div>
+
+        <!-- HUMAN REVIEW 2 -->
+        <div style="background:rgba(255,215,0,0.1); border:1px solid var(--coin-gold); border-radius:8px; padding:calc(var(--s)*0.5) calc(var(--s)*0.8); margin:calc(var(--s)*0.5) 0; text-align:center;">
+          <span style="color:var(--coin-gold);">🧑‍💻 MARCO: Reviews → Architect handled blockers brilliantly! ✨</span>
+        </div>
+
+        <div style="text-align:center; font-size:clamp(1em,calc(var(--s)*3),2em); color:var(--mario-yellow);">⬇️</div>
+
+        <!-- PHASE 3 -->
+        <div style="background:rgba(229,37,33,0.1); border:1px solid var(--mario-red); border-radius:8px; padding:calc(var(--s)*0.8); margin:calc(var(--s)*0.5) 0;">
+          <div style="color:var(--mario-red); font-size:clamp(0.7em,calc(var(--s)*1.8),1.2em); margin-bottom:5px;">⚡ PHASE 3: DEVELOPER</div>
+          <div class="flow-row">
+            <span style="color:var(--mario-green);">📥 IN:</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">development-plan.md</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">architecture-notes.md</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">analysis.md</span>
+            <span style="background:#1a3a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">T03.sch</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-blue);">📚 REF:</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">program-template.java</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">service-template.java</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">service-test-template.java</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-blue);">📚 REF:</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">program-test-template.java</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">kokos-sdk-guide.md</span>
+            <span style="background:#1a1a3a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">test-generation-from-sch.md</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-red);">📤 OUT:</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">IT03Service.java</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">T03Service.java</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">MUT030.java</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">MUT030.rpgle</span>
+          </div>
+          <div class="flow-row">
+            <span style="color:var(--mario-red);">📤 OUT:</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px; border:1px solid var(--blocker-red);">❌ T03ServiceTest.java</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px; border:1px solid var(--blocker-red);">❌ MUT030Test.java</span>
+            <span style="background:#3a1a1a; padding:calc(var(--s)*0.15) calc(var(--s)*0.5); border-radius:4px; margin:2px;">development-notes.md</span>
+          </div>
+        </div>
+
+        <div style="text-align:center; font-size:clamp(1em,calc(var(--s)*3),2em); color:var(--mario-yellow);">⬇️</div>
+
+        <!-- HUMAN FIX -->
+        <div style="background:rgba(255,215,0,0.15); border:2px solid var(--coin-gold); border-radius:8px; padding:calc(var(--s)*0.8); margin:calc(var(--s)*0.5) 0; text-align:center;">
+          <span style="color:var(--coin-gold); font-size:clamp(0.7em,calc(var(--s)*1.8),1.2em);">🧑‍💻🔧 MARCO: Fixes tests → ALL PASSING → BUILD SUCCESS! 🏆</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAV GUARD: prevents scroll-content from covering nav -->
+<div class="nav-guard"></div>
+
+<!-- ============= NAVIGATION ============= -->
+<div class="nav-bar" id="navBar">
+  <button class="nav-btn prev" id="btnPrev">◀ PREV</button>
+  <div class="slide-counter">
+    <span id="currentSlide">1</span> / <span id="totalSlides">15</span>
+    <div class="lap-label" id="lapLabel">TITLE</div>
+  </div>
+  <button class="nav-btn next" id="btnNext">NEXT ▶</button>
+</div>
+
+<script>
+  // ============= SOUND EFFECTS SETUP =============
+  const musicBtn = document.getElementById('musicBtn');
+  let soundsEnabled = true;
+  // Set initial active state
+  musicBtn.style.borderColor = 'var(--mario-green)';
+
+  // Create engaging sound effects using Web Audio API
+  function playSoundEffect(type) {
+    if (!soundsEnabled) return;
+
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    switch(type) {
+      case 'coin':
+        // Coin pickup sound
+        const coinOsc = ctx.createOscillator();
+        const coinGain = ctx.createGain();
+        coinOsc.connect(coinGain);
+        coinGain.connect(ctx.destination);
+        coinOsc.frequency.value = 987.77; // B5
+        coinOsc.type = 'square';
+        coinGain.gain.setValueAtTime(0.3, ctx.currentTime);
+        coinGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        coinOsc.start(ctx.currentTime);
+        coinOsc.stop(ctx.currentTime + 0.1);
+        break;
+
+      case 'title':
+        // Title screen - Grand Prix fanfare
+        const titleNotes = [523.25, 587.33, 659.25, 783.99]; // C-D-E-G
+        titleNotes.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.25);
+          }, i * 80);
+        });
+        break;
+
+      case 'character-select':
+        // Character selection sound
+        const selectOsc = ctx.createOscillator();
+        const selectGain = ctx.createGain();
+        selectOsc.connect(selectGain);
+        selectGain.connect(ctx.destination);
+        selectOsc.frequency.value = 659.25; // E5
+        selectOsc.type = 'square';
+        selectGain.gain.setValueAtTime(0.25, ctx.currentTime);
+        selectGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+        osc.start(ctx.currentTime);
+        selectOsc.stop(ctx.currentTime + 0.12);
+        break;
+
+      case 'race-start':
+        // Race start engine sound
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 110 + (i * 50); // Rising engine pitch
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.15);
+          }, i * 100);
+        }
+        break;
+
+      case 'working':
+        // Working/processing sound (beep boop)
+        [830.61, 987.77].forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.08);
+          }, i * 100);
+        });
+        break;
+
+      case 'warning':
+        // Warning/blocker alert
+        for (let i = 0; i < 2; i++) {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 440; // A4
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.12);
+          }, i * 150);
+        }
+        break;
+
+      case 'powerup':
+        // Item box / power-up collected
+        const powerupNotes = [523.25, 659.25, 783.99]; // C-E-G ascending
+        powerupNotes.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.15);
+          }, i * 60);
+        });
+        break;
+
+      case 'success':
+        // Success/star collected
+        const successNotes = [659.25, 783.99, 1046.50]; // E-G-C
+        successNotes.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.22, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.2);
+          }, i * 70);
+        });
+        break;
+
+      case 'struggle':
+        // Struggling/crash sound
+        const struggleOsc = ctx.createOscillator();
+        const struggleGain = ctx.createGain();
+        struggleOsc.connect(struggleGain);
+        struggleGain.connect(ctx.destination);
+        struggleOsc.frequency.value = 220; // Low A
+        struggleOsc.type = 'sawtooth';
+        struggleGain.gain.setValueAtTime(0.2, ctx.currentTime);
+        struggleGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        struggleOsc.start(ctx.currentTime);
+        struggleOsc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.3);
+        struggleOsc.stop(ctx.currentTime + 0.3);
+        break;
+
+      case 'mushroom':
+        // Mushroom boost sound
+        const boostOsc = ctx.createOscillator();
+        const boostGain = ctx.createGain();
+        boostOsc.connect(boostGain);
+        boostGain.connect(ctx.destination);
+        boostOsc.frequency.value = 440;
+        boostOsc.type = 'square';
+        boostGain.gain.setValueAtTime(0.25, ctx.currentTime);
+        boostGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        boostOsc.start(ctx.currentTime);
+        boostOsc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+        boostOsc.stop(ctx.currentTime + 0.25);
+        break;
+
+      case 'hero':
+        // Hero/fix sound (triumph)
+        const heroNotes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C-E-G-C-E
+        heroNotes.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.25);
+          }, i * 80);
+        });
+        break;
+
+      case 'finish':
+        // Victory fanfare (extended)
+        const finishNotes = [523.25, 659.25, 783.99, 1046.50, 1046.50, 1046.50]; // C-E-G-C-C-C
+        finishNotes.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            const duration = i >= 3 ? 0.4 : 0.25;
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + duration);
+          }, i * 100);
+        });
+        break;
+
+      case 'bonus':
+        // Bonus track sound
+        const bonusNotes = [783.99, 987.77, 1174.66]; // G-B-D
+        bonusNotes.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.18);
+          }, i * 90);
+        });
+        break;
+
+      default:
+        // Default navigation sound
+        const defaultOsc = ctx.createOscillator();
+        const defaultGain = ctx.createGain();
+        defaultOsc.connect(defaultGain);
+        defaultGain.connect(ctx.destination);
+        defaultOsc.frequency.value = 523.25; // C5
+        defaultOsc.type = 'triangle';
+        defaultGain.gain.setValueAtTime(0.2, ctx.currentTime);
+        defaultGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        defaultOsc.start(ctx.currentTime);
+        defaultOsc.stop(ctx.currentTime + 0.15);
+    }
+  }
+
+  // Sound effects toggle button
+  musicBtn.addEventListener('click', function() {
+    soundsEnabled = !soundsEnabled;
+
+    if (soundsEnabled) {
+      musicBtn.textContent = '🔊';
+      musicBtn.style.borderColor = 'var(--mario-green)';
+      playSoundEffect('coin');
+    } else {
+      musicBtn.textContent = '🔇';
+      musicBtn.style.borderColor = 'var(--mario-yellow)';
+    }
+  });
+
+  // ============= STARFIELD =============
+  const starfield = document.getElementById('starfield');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    const size = Math.random() * 3 + 1;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.animationDelay = Math.random() * 2 + 's';
+    starfield.appendChild(star);
+  }
+
+  // ============= SLIDE NAVIGATION =============
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  document.getElementById('totalSlides').textContent = totalSlides;
+
+  const lapLabels = [
+    'TITLE', 'SELECT',
+    'LAP 1', 'LAP 1', 'LAP 1',
+    'LAP 2', 'LAP 2', 'LAP 2',
+    'LAP 3', 'LAP 3', 'LAP 3', 'LAP 3',
+    'FINISH', 'FINISH', 'BONUS'
+  ];
+
+  function showSlide(n) {
+    slides.forEach(s => s.classList.remove('active'));
+    slides[n].classList.add('active');
+    document.getElementById('currentSlide').textContent = n + 1;
+    document.getElementById('lapLabel').textContent = lapLabels[n] || '';
+
+    // Update race position
+    const lap = n <= 1 ? 1 : n <= 4 ? 1 : n <= 7 ? 2 : 3;
+    document.getElementById('posNum').textContent = lap;
+
+    // Trigger working bars
+    if (n === 3) {
+      setTimeout(() => {
+        const bar = document.getElementById('analystBar');
+        if (bar) bar.classList.add('go');
+      }, 300);
+    } else {
+      const ab = document.getElementById('analystBar');
+      if (ab) ab.classList.remove('go');
+    }
+    if (n === 6) {
+      setTimeout(() => {
+        const bar = document.getElementById('architectBar');
+        if (bar) bar.classList.add('go');
+      }, 300);
+    } else {
+      const ab2 = document.getElementById('architectBar');
+      if (ab2) ab2.classList.remove('go');
+    }
+
+    // Play contextual sound effects based on slide content
+    playSlideSound(n);
+  }
+
+  function playSlideSound(slideNum) {
+    switch(slideNum) {
+      case 0: playSoundEffect('title'); break;              // Title screen
+      case 1: playSoundEffect('character-select'); break;   // Character select
+      case 2: playSoundEffect('race-start'); break;         // Marco starts race
+      case 3: playSoundEffect('working'); break;            // Analyst working
+      case 4: playSoundEffect('warning'); break;            // Blockers found
+      case 5: playSoundEffect('powerup'); break;            // Architect called (ignore blockers power)
+      case 6: playSoundEffect('working'); break;            // Architect working
+      case 7: playSoundEffect('success'); break;            // Architect brilliant!
+      case 8: playSoundEffect('race-start'); break;         // Developer called
+      case 9: playSoundEffect('struggle'); break;           // Developer struggling
+      case 10: playSoundEffect('mushroom'); break;          // Mushroom boost!
+      case 11: playSoundEffect('warning'); break;           // Developer gives up
+      case 12: playSoundEffect('hero'); break;              // Marco fixes it!
+      case 13: playSoundEffect('finish'); break;            // Finish line!
+      case 14: playSoundEffect('bonus'); break;             // Bonus track
+      default: playSoundEffect('select');                   // Default sound
+    }
+  }
+
+  function nextSlide() {
+    if (current < totalSlides - 1) {
+      current++;
+      showSlide(current);
+      // Sound is now played by showSlide() -> playSlideSound()
+    }
+  }
+
+  function prevSlide() {
+    if (current > 0) {
+      current--;
+      showSlide(current);
+      // Sound is now played by showSlide() -> playSlideSound()
+    }
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+  });
+
+  // Touch navigation
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { diff > 0 ? nextSlide() : prevSlide(); }
+  });
+
+  // Nav button click handlers
+  document.getElementById('btnNext').addEventListener('click', function(e) {
+    e.stopPropagation();
+    nextSlide();
+  });
+  document.getElementById('btnPrev').addEventListener('click', function(e) {
+    e.stopPropagation();
+    prevSlide();
+  });
+
+  // Prevent scroll-content from stealing clicks in nav zone
+  document.getElementById('navBar').addEventListener('pointerdown', function(e) {
+    e.stopPropagation();
+  });
+</script>
+
+</body>
+</html>
